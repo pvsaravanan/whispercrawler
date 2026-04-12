@@ -1,88 +1,156 @@
 # WhisperCrawler
-*Adaptive web scraping — fast, stealthy, and self-healing.*
 
-![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)
-![License](https://img.shields.io/badge/License-MIT-blue.svg)
-![Build](https://img.shields.io/badge/build-passing-brightgreen.svg)
-![Coverage](https://img.shields.io/badge/coverage-80%25-brightgreen.svg)
+Adaptive web scraping framework — fast, stealthy, and self-healing.
 
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/WhisperCrawl/WhisperCrawler)
+[![Coverage](https://img.shields.io/badge/coverage-80%25-brightgreen.svg)](https://github.com/WhisperCrawl/WhisperCrawler)
 
+WhisperCrawler is a modern Python-based web scraping framework designed for speed, resilience, and stealth. It integrates advanced fetchers to bypass sophisticated anti-bot systems while providing a self-healing selection engine that survives website redesigns.
 
-## What it does
-* **Bypasses advanced bot protection** using stealthy, heavily-patched headless browsers.
-* **Rapidly extracts data** using a fast concurrent static HTTP fetcher (HTTP/3 + TLS fingerprinting).
-* **Self-heals broken scrapers** by recovering elements based on layout and similarity heuristics when selectors fail.
+## Core Capabilities
 
-## Quick start
+* **Anti-Bot Bypass**: Native integration with heavily-patched headless browsers to evade fingerprinting and perimeter security.
+* **Stealth Fingerprinting**: High-performance concurrent static HTTP fetcher supporting HTTP/3 and TLS fingerprinting.
+* **Self-Healing Selectors**: Adaptive parsing technology that recovers elements based on structural similarity when traditional CSS/XPath selectors fail.
+* **Distributed Readiness**: Built-in support for proxy rotation, session persistence, and concurrent request scheduling.
+
+## Installation
+
+Install the core package using pip:
+
+```bash
+pip install whispercrawler
+```
+
+For advanced browser-based fetchers or MCP support, use the following extras:
+
+```bash
+# Install with browser automation support
+pip install "whispercrawler[fetchers]"
+
+# Install with MCP server support
+pip install "whispercrawler[mcp]"
+
+# Download required browser binaries
+whispercrawler install
+```
+
+## Quick Start
+
+WhisperCrawler provides multiple fetcher strategies depending on the target site's complexity.
+
 ```python
-from whispercrawler import Crawler, GhostCrawler, ShadowCrawler, Spider, Response
+from whispercrawler import Crawler, GhostCrawler, ShadowCrawler, Spider, Request, Response
 
-# Static HTTP fetch (fastest)
+# 1. High-Performance Static Fetch (Best for APIs and simple sites)
 page = Crawler.get("https://example.com")
 print(page.css("h1::text").get())
 
-# JavaScript-heavy site
+# 2. Dynamic Content Parsing (Best for SPAs and JS-rendered content)
 page = GhostCrawler.fetch("https://spa-example.com", headless=True)
 items = page.css(".product-card")
 
-# Cloudflare-protected site
+# 3. Advanced Stealth (Best for sites protected by Cloudflare/WAFs)
 page = ShadowCrawler.fetch("https://protected.example.com")
 price = page.css(".price::text").get()
 
-# Adaptive parsing — survives site redesigns
+# 4. Adaptive Parsing (Self-healing selectors)
 page = Crawler.get("https://example.com")
-title = page.css("h1", auto_save=True)           # saves fingerprint
-# Later, after site redesign — finds element by similarity
+title = page.css("h1", auto_save=True)  # Fingerprints and saves the element
+# During a redesign, the selector survives by searching for similarity
 title = page.css("h1", adaptive=True)
+```
 
-# Spider
+## Fetcher Strategy Documentation
+
+| Fetcher | Implementation | Ideal For | Performance |
+|:--- |:--- |:--- |:--- |
+| **Crawler** | `curl_cffi` (HTTP/3) | Static HTML, REST APIs, JSON Endpoints | Ultra-Fast |
+| **GhostCrawler** | `Playwright` / `Patchright` | SPAs, Interactive JS Applications | Fast |
+| **ShadowCrawler** | `Camoufox` (Hardened Firefox) | Advanced anti-bot, Cloudflare, PerimeterX | Moderate |
+
+## Technical Features
+
+### Adaptive Parsing Engine
+WhisperCrawler introduces a resilient selection mechanism. When `auto_save=True` is enabled, the engine stores a structural fingerprint (tag name, attribute distributions, text density, and DOM depth) in a local SQLite database. If the website's layout changes and the selector fails, the `adaptive=True` mode triggers a similarity search to find the new location of the target element.
+
+### Session Management
+Maintain shared state across multiple requests, including cookies, connection pools, and browser context.
+
+```python
+from whispercrawler import FetcherSession, DynamicSession
+
+# Static HTTP session
+with FetcherSession() as session:
+    session.get("https://example.com/login")
+    response = session.post("https://example.com/api", json={"key": "val"})
+
+# Dynamic browser session
+with DynamicSession(headless=True, max_pages=5) as session:
+    page = session.fetch("https://example.com/dashboard")
+```
+
+### Proxy Rotation with ProxyWheel
+The `ProxyWheel` utility handles intelligent proxy rotation and automatic quarantine for failing proxies.
+
+```python
+from whispercrawler import Crawler, ProxyWheel
+
+rotator = ProxyWheel(
+    proxies=["http://proxy1:8080", "http://proxy2:8080"], 
+    strategy="least_used"
+)
+
+# Apply to specific request
+page = Crawler.get("https://example.com", proxy_rotator=rotator)
+
+# Or set globally
+Crawler.proxy_rotator = rotator
+```
+
+## Spider Framework
+
+Build scalable crawlers using the built-in Spider class.
+
+```python
+from whispercrawler import Spider, Response, Request
+
 class QuoteSpider(Spider):
-    name = "quotes"
+    name = "quotes_crawler"
     start_urls = ["https://quotes.toscrape.com/"]
     concurrent_requests = 10
 
     async def parse(self, response: Response):
         for quote in response.css(".quote"):
             yield {
-                "text":   quote.css(".text::text").get(),
+                "text": quote.css(".text::text").get(),
                 "author": quote.css(".author::text").get(),
             }
-        next_page = response.css("li.next a::attr(href)").get()
-        if next_page:
-            yield Request(url=response.url + next_page)
+        
+        if next_page := response.css("li.next a::attr(href)").get():
+            yield Request(url=response.urljoin(next_page))
 
 QuoteSpider().start()
 ```
 
-## Fetcher selection table
-| Fetcher | When to use | Backend | Speed |
-|---|---|---|---|
-| Crawler | Static HTML, APIs, JSON endpoints | curl_cffi HTTP/3 | Fastest |
-| GhostCrawler | JavaScript-rendered pages, SPAs | Playwright/Patchright Chromium | Medium |
-| ShadowCrawler | Cloudflare, advanced bot detection | Camoufox (modified Firefox) | Slower |
+## CLI Reference
 
-## Adaptive parsing
-WhisperCrawler introduces self-healing element selection. By adding `auto_save=True` to your CSS or XPath calls, it saves a detailed structural fingerprint of the matched element to a local SQLite database. If a site undergoes a redesign and your selector stops matching, switching to `adaptive=True` allows WhisperCrawler to search the DOM for elements that closely match the stored fingerprint (using tag, text similarity, attribute overlap, and DOM depth calculation), returning the closest match automatically.
+| Command | Sub-command | Parameters | Description |
+|:--- |:--- |:--- |:--- |
+| `whispercrawler` | `install` | `--force` | Setup browser binaries |
+| `whispercrawler` | `extract get` | `<url> <output>` | Command-line extraction |
+| `whispercrawler` | `shell` | | Interactive IPython environment |
+| `whispercrawler` | `mcp` | `--http` | Launch the MCP server |
 
-## Installation
-```bash
-pip install whispercrawler
-pip install "whispercrawler[fetchers]"   # for GhostCrawler and ShadowCrawler
-pip install "whispercrawler[mcp]"        # for MCP server
-whispercrawler install                   # download browser binaries
-```
+## MCP Server Integration
 
-## CLI reference
-| Command | Options | Description |
-|---|---|---|
-| `whispercrawler install` | `--force` | Download browser binaries required for Ghost/Shadow fetchers |
-| `whispercrawler get <url>` | `--stealth`, `--ghost`, `--css <sel>`, `--xpath <sel>`, `--output <type>`, `--adaptive` | Fetch URL and extract elements via CLI |
-| `whispercrawler shell` | | Launch interactive Python shell with preloaded environment |
+WhisperCrawler provides a Model Context Protocol (MCP) server, allowing AI agents (such as Claude Desktop) to perform real-time web research and data extraction.
 
-## MCP server setup
-WhisperCrawler includes a Model Context Protocol (MCP) server that exposes scraping tools to AI agents like Claude Desktop or OpenCode.
+### Configuration
+Add the following to your MCP settings file:
 
-Configure your agent's MCP settings to add the `whispercrawler` server via stdio:
 ```json
 {
   "mcpServers": {
@@ -94,45 +162,14 @@ Configure your agent's MCP settings to add the `whispercrawler` server via stdio
 }
 ```
 
-## Session usage
-Maintain shared persistent state (cookies, connection pools, proxies) across multiple requests using sessions.
+## Professional Development Environment
 
-```python
-from whispercrawler import CrawlerSession, GhostSession, ShadowSession
+The project provides an interactive shell for testing extraction logic. Execute `whispercrawler shell` to enter an IPython REPL with all fetchers and parsing utilities pre-loaded. It includes specialized macros like `uncurl()` to transform browser curl commands into WhisperCrawler requests instantly.
 
-# Static requests
-with CrawlerSession(browser_type="chrome") as session:
-    page1 = session.get("https://example.com/login")
-    page2 = session.post("https://example.com/api", json={"user": "foo"})
+## Contributing
 
-# Playwright SPA session
-with GhostSession(headless=True, max_pages=3) as session:
-    page = session.fetch("https://example.com")
-
-# Camoufox stealth session
-with ShadowSession(humanize=True) as session:
-    page = session.fetch("https://protected.com")
-```
-
-## ProxyWheel usage
-Efficiently rotate through a pool of proxies using `ProxyWheel`. It automatically quarantines failed proxies for 5 minutes.
-
-```python
-from whispercrawler import Crawler, ProxyWheel
-
-rotator = ProxyWheel(["http://proxy1:8080", "http://proxy2:8080"], strategy="least_used")
-
-# Apply to a single request
-page = Crawler.get("https://example.com", proxy_rotator=rotator)
-
-# Or apply globally to the class
-Crawler.proxy_rotator = rotator
-```
-
-## Interactive shell
-The interactive shell provides a quick scratchpad to test scraping logic without writing full scripts. Running `whispercrawler shell` launches an IPython REPL with all fetcher classes, a persistent session history, and handy macros (like `curl2crawler()`) pre-imported to immediately begin querying pages interactively.
+We welcome contributions from the community! Whether you are fixing a bug, improving documentation, or adding new stealth features, your help is appreciated. Please see our [Contributing Guide](CONTRIBUTING.md) for details on our development workflow and standards.
 
 ## License
-[**MIT License**](LICENSE)
 
-
+This project is licensed under the MIT License.
