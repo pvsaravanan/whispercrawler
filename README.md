@@ -151,6 +151,30 @@ QuoteSpider().start()
 | `whispercrawler` | `shell`       |                  | Interactive IPython environment |
 | `whispercrawler` | `mcp`         | `--http`         | Launch the MCP server           |
 
+## Integrations
+
+### Scrapy Integration
+WhisperCrawler provides a seamless decorator to replace Scrapy's default `parsel` selectors with its own adaptive engine. This allows you to use self-healing selectors directly within standard Scrapy spiders.
+
+```python
+from whispercrawler.integrations.scrapy import whisper_response
+
+class MySpider(scrapy.Spider):
+    name = "my_spider"
+    
+    @whisper_response
+    def parse(self, response):
+        # response is now powered by WhisperCrawler
+        # Standard selection
+        title = response.css("h1::text").get()
+        
+        # Adaptive selection (survives site redesigns)
+        price = response.css(".current-price", adaptive=True).get()
+        
+        # WhisperCrawler specific helpers
+        contact = response.find_by_text("Contact Us", partial=True)
+```
+
 ## MCP Server Integration
 
 WhisperCrawler provides a Model Context Protocol (MCP) server, allowing AI agents (such as Claude Desktop) to perform real-time web research and data extraction.
