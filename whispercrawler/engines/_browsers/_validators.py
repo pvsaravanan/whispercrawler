@@ -126,6 +126,8 @@ class StealthConfig(PlaywrightConfig, kw_only=True, frozen=False, weakref=True):
     hide_canvas: bool = False
     block_webrtc: bool = False
     solve_cloudflare: bool = False
+    captcha_api_key: Optional[str] = None
+    captcha_service: str = "2captcha"
 
     def __post_init__(self):
         """Custom validation after msgspec validation"""
@@ -151,6 +153,8 @@ class _fetch_params:
     load_dom: bool
     blocked_domains: Optional[Set[str]]
     solve_cloudflare: bool
+    captcha_api_key: Optional[str]
+    captcha_service: str
     selector_config: Dict
 
 

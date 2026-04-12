@@ -227,6 +227,24 @@ print(f"Price Pattern: {price_pattern}")
 # Example Output: ^\d+\.\d+\sUSD$
 ```
 
+### Automatic Captcha Solving
+
+WhisperCrawler integrates directly with services like **2Captcha** and **Anti-Captcha** to solve ReCaptcha V2 challenges during stealthy sessions.
+
+```python
+from whispercrawler import StealthyFetcher
+
+# Simply provide your API key and WhisperCrawler handles the rest
+page = StealthyFetcher.fetch(
+    "https://example.com/protected-page",
+    captcha_api_key="YOUR_API_KEY",
+    captcha_service="2captcha"  # Optional: "2captcha" (default) or "anticaptcha"
+)
+
+if page.css(".protected-content"):
+    print("Captcha solved and content extracted!")
+```
+
 ## Integrations
 
 ### Scrapy Integration

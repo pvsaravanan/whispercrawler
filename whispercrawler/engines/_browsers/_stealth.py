@@ -14,6 +14,7 @@ from playwright.async_api import (
 from playwright.sync_api import Locator, Page
 
 from whispercrawler.core._types import Any, Optional, ProxyType, Unpack
+from whispercrawler.core.captcha import get_solver
 from whispercrawler.core.utils import log
 from whispercrawler.engines._browsers._base import AsyncSession, StealthySessionMixin, SyncSession
 from whispercrawler.engines._browsers._types import StealthFetchParams, StealthSession
@@ -203,6 +204,75 @@ class StealthySession(SyncSession, StealthySessionMixin):
                     log.info("Looks like Cloudflare captcha is still present, solving again")
                     return self._cloudflare_solver(page)
 
+    def _recaptcha_solver(self, page: Page, api_key: str, service: str) -> None:
+        """Discover and solve ReCaptcha V2 on the page.
+        
+        :param page: The targeted page
+        :param api_key: Your API key for the solver service
+        :param service: Which service to use ("2captcha" or "anticaptcha")
+        """
+        site_key = page.get_attribute('div.g-recaptcha', 'data-sitekey') or \
+                  page.get_attribute('div.recaptcha', 'data-sitekey') or \
+                  page.get_attribute('.g-recaptcha', 'data-sitekey')
+        
+        if not site_key:
+            # Check for invisible recaptcha or other sources
+            site_key = page.evaluate('''() => {
+                const el = document.querySelector('.g-recaptcha');
+                if (el) return el.dataset.sitekey;
+                // Check recapture instances
+                if (window.___grecaptcha_cfg && window.___grecaptcha_cfg.clients) {
+                    for (const id in window.___grecaptcha_cfg.clients) {
+                        const client = window.___grecaptcha_cfg.clients[id];
+                        for (const key in client) {
+                            if (client[key] && client[key].sitekey) return client[key].sitekey;
+                        }
+                    }
+                }
+                return null;
+            }''')
+
+        if site_key:
+            log.info(f"ReCaptcha detected with site-key: {site_key}. Solving via {service}...")
+            solver = get_solver(api_key, service)
+            if not solver:
+                log.error("Captcha API key missing, skipping solve.")
+                return
+            
+            try:
+                token = solver.solve_recaptcha_v2(site_key, page.url)
+                log.info("ReCaptcha solved successfully.")
+                
+                # Inject the solution
+                page.evaluate(f'''(token) => {{
+                    const textarea = document.getElementById('g-recaptcha-response');
+                    if (textarea) {{
+                        textarea.value = token;
+                    }}
+                    // Try to trigger the callback if it exists
+                    if (window.___grecaptcha_cfg && window.___grecaptcha_cfg.clients) {{
+                        for (const id in window.___grecaptcha_cfg.clients) {{
+                            const client = window.___grecaptcha_cfg.clients[id];
+                            for (const key in client) {{
+                                if (client[key] && client[key].callback) {{
+                                    if (typeof client[key].callback === 'function') {{
+                                        client[key].callback(token);
+                                    }} else if (typeof client[key].callback === 'string') {{
+                                        window[client[key].callback](token);
+                                    }}
+                                }}
+                            }}
+                        }}
+                    }}
+                }}''', token)
+                
+                # Small wait to let things settle
+                page.wait_for_timeout(1000)
+            except Exception as e:
+                log.error(f"Failed to solve ReCaptcha: {e}")
+        else:
+            log.info("No ReCaptcha detected on the page.")
+
     def fetch(self, url: str, **kwargs: Unpack[StealthFetchParams]) -> Response:
         """Opens up the browser and do your request based on your chosen options.
 
@@ -268,6 +338,9 @@ class StealthySession(SyncSession, StealthySessionMixin):
                         self._cloudflare_solver(page)
                         # Make sure the page is fully loaded after the captcha
                         self._wait_for_page_stability(page, params.load_dom, params.network_idle)
+
+                    if params.captcha_api_key:
+                        self._recaptcha_solver(page, params.captcha_api_key, params.captcha_service)
 
                     if params.page_action:
                         try:
@@ -491,6 +564,72 @@ class AsyncStealthySession(AsyncSession, StealthySessionMixin):
                     log.info("Looks like Cloudflare captcha is still present, solving again")
                     return await self._cloudflare_solver(page)
 
+    async def _recaptcha_solver(self, page: async_Page, api_key: str, service: str) -> None:
+        """Discover and solve ReCaptcha V2 on the page (Async).
+        
+        :param page: The targeted page
+        :param api_key: Your API key for the solver service
+        :param service: Which service to use ("2captcha" or "anticaptcha")
+        """
+        site_key = await page.get_attribute('div.g-recaptcha', 'data-sitekey') or \
+                  await page.get_attribute('div.recaptcha', 'data-sitekey') or \
+                  await page.get_attribute('.g-recaptcha', 'data-sitekey')
+        
+        if not site_key:
+            site_key = await page.evaluate('''() => {
+                const el = document.querySelector('.g-recaptcha');
+                if (el) return el.dataset.sitekey;
+                if (window.___grecaptcha_cfg && window.___grecaptcha_cfg.clients) {
+                    for (const id in window.___grecaptcha_cfg.clients) {
+                        const client = window.___grecaptcha_cfg.clients[id];
+                        for (const key in client) {
+                            if (client[key] && client[key].sitekey) return client[key].sitekey;
+                        }
+                    }
+                }
+                return null;
+            }''')
+
+        if site_key:
+            log.info(f"ReCaptcha detected with site-key: {site_key}. Solving via {service}...")
+            solver = get_solver(api_key, service)
+            if not solver:
+                log.error("Captcha API key missing, skipping solve.")
+                return
+            
+            try:
+                # Note: solver.solve_recaptcha_v2 is currently sync, but we call it from async. 
+                # In a real production app we might want to run this in a threadpool to not block the loop.
+                token = solver.solve_recaptcha_v2(site_key, page.url)
+                log.info("ReCaptcha solved successfully.")
+                
+                await page.evaluate(f'''(token) => {{
+                    const textarea = document.getElementById('g-recaptcha-response');
+                    if (textarea) {{
+                        textarea.value = token;
+                    }}
+                    if (window.___grecaptcha_cfg && window.___grecaptcha_cfg.clients) {{
+                        for (const id in window.___grecaptcha_cfg.clients) {{
+                            const client = window.___grecaptcha_cfg.clients[id];
+                            for (const key in client) {{
+                                if (client[key] && client[key].callback) {{
+                                    if (typeof client[key].callback === 'function') {{
+                                        client[key].callback(token);
+                                    }} else if (typeof client[key].callback === 'string') {{
+                                        window[client[key].callback](token);
+                                    }}
+                                }}
+                            }}
+                        }}
+                    }}
+                }}''', token)
+                
+                await page.wait_for_timeout(1000)
+            except Exception as e:
+                log.error(f"Failed to solve ReCaptcha: {e}")
+        else:
+            log.info("No ReCaptcha detected on the page.")
+
     async def fetch(self, url: str, **kwargs: Unpack[StealthFetchParams]) -> Response:
         """Opens up the browser and do your request based on your chosen options.
 
@@ -559,6 +698,9 @@ class AsyncStealthySession(AsyncSession, StealthySessionMixin):
                         await self._wait_for_page_stability(
                             page, params.load_dom, params.network_idle
                         )
+
+                    if params.captcha_api_key:
+                        await self._recaptcha_solver(page, params.captcha_api_key, params.captcha_service)
 
                     if params.page_action:
                         try:

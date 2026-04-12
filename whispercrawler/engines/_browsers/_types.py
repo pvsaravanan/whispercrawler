@@ -112,7 +112,11 @@ class StealthSession(PlaywrightSession, total=False):
     hide_canvas: bool
     block_webrtc: bool
     solve_cloudflare: bool
+    captcha_api_key: Optional[str]
+    captcha_service: str
 
 
 class StealthFetchParams(PlaywrightFetchParams, total=False):
     solve_cloudflare: bool
+    captcha_api_key: Optional[str]
+    captcha_service: str

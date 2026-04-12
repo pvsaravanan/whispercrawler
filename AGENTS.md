@@ -325,6 +325,17 @@ def parse(self, response):
     title = response.css("h1::text").get()
 ```
 
+### 6. Automatic Captcha Solving
+Provision an API key from 2Captcha or Anti-Captcha to solving Google ReCaptcha V2 challenges.
+```python
+from whispercrawler import StealthyFetcher
+page = StealthyFetcher.fetch(
+    url, 
+    captcha_api_key="...",
+    captcha_service="2captcha"
+)
+```
+
 ## Development Workflow
 
 1. Make changes following the style guidelines above

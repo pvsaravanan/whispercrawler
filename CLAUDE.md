@@ -157,4 +157,11 @@ from whispercrawler.integrations.scrapy import whisper_response
 @whisper_response
 def parse(self, response):
     title = response.css("h1::text").get()
+
+# Captcha Solving
+page = StealthyFetcher.fetch(
+    url,
+    captcha_api_key="...",
+    captcha_service="2captcha"
+)
 ```
