@@ -170,6 +170,22 @@ for link in all_links:
     print(f"Found page: {link}")
 ```
 
+### Structured Data (Schema) Detection
+WhisperCrawler automatically extracts and parses JSON-LD and Microdata from pages, returning them as Python dictionaries.
+
+```python
+page = Crawler.get("https://shop.example.com/product-1")
+
+# Get all schemas found on the page
+all_schemas = page.schemas
+
+# Find a specific schema type (e.g., Product, Organization, Recipe)
+products = page.find_schema("Product")
+if products:
+    price = products[0].get("offers", {}).get("price")
+    print(f"Price from schema: {price}")
+```
+
 ## Integrations
 
 ### Scrapy Integration

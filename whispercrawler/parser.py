@@ -45,6 +45,7 @@ from whispercrawler.core.storage import (
 from whispercrawler.core.translator import css_to_xpath as _css_to_xpath
 from whispercrawler.core.utils import clean_spaces, flatten, html_forbidden, log
 from whispercrawler.core.pagination import PaginationDetector
+from whispercrawler.core.schema import SchemaDetector
 
 __DEFAULT_DB_FILE__ = str(Path(__file__).parent / "elements_storage.db")
 # Attributes that are Python reserved words and can't be used directly
@@ -1432,6 +1433,24 @@ class Selectors(List[Selector]):
         if mode == "next":
             return self.next_page
         return self.all_pages
+
+    @property
+    def schemas(self) -> List[Dict[str, Any]]:
+        """Extract and detect structured data (JSON-LD, Microdata) from the page.
+        
+        :return: A list of dictionaries representing the detected schemas.
+        """
+        return SchemaDetector(self).get_all()
+
+    def find_schema(self, schema_type: str) -> List[Dict[str, Any]]:
+        """Search for specific schema types in the page.
+        
+        Example: page.find_schema("Product") or page.find_schema("Recipe")
+        
+        :param schema_type: The string to search for in schema '@type'.
+        :return: A list of matching schema dictionaries.
+        """
+        return SchemaDetector(self).find_by_type(schema_type)
 
     @property
     def length(self) -> int:
