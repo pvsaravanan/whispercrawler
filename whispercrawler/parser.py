@@ -47,6 +47,7 @@ from whispercrawler.core.utils import clean_spaces, flatten, html_forbidden, log
 from whispercrawler.core.pagination import PaginationDetector
 from whispercrawler.core.schema import SchemaDetector
 from whispercrawler.core.analyzer import PageAnalyzer
+from whispercrawler.core.regex import RegexGenerator
 
 __DEFAULT_DB_FILE__ = str(Path(__file__).parent / "elements_storage.db")
 # Attributes that are Python reserved words and can't be used directly
@@ -1256,6 +1257,20 @@ class Selectors(List[Selector]):
             return self.__class__(cast(List[Selector], lst))
         else:
             return cast(Selector, lst)
+
+    def generate_regex(self, attribute: Optional[str] = None) -> str:
+        """Generate a regular expression pattern that matches elements in this list.
+        
+        :param attribute: If provided, generates regex for this attribute value (e.g., 'href').
+                         Otherwise, generates regex for the element's text content.
+        :return: A string representing the generated regular expression.
+        """
+        if attribute:
+            values = [s.attrib.get(attribute) for s in self if s.attrib.get(attribute)]
+        else:
+            values = [str(s.get()) for s in self]
+        
+        return RegexGenerator.generate(values)
 
     def xpath(
         self,

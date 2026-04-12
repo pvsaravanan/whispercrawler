@@ -205,6 +205,24 @@ print(page.analyze(summary=True))
 # Site: NewsPort
 ```
 
+### Programmatic Regex Generation
+WhisperCrawler can analyze a group of elements and synthesize a regular expression that matches their patterns. This is ideal for identifying URL structures, price formats, or ID sequences.
+
+```python
+links = page.css("a.product-link")
+
+# Generate a regex pattern for all href attributes in the selection
+href_pattern = links.generate_regex(attribute="href")
+print(f"Detected URL Pattern: {href_pattern}")
+# Example Output: ^https://example\.com/p/\d+$
+
+# Generate a regex pattern based on the text content of elements
+prices = page.css(".price")
+price_pattern = prices.generate_regex()
+print(f"Price Pattern: {price_pattern}")
+# Example Output: ^\d+\.\d+\sUSD$
+```
+
 ## Integrations
 
 ### Scrapy Integration
