@@ -31,6 +31,8 @@ htmlcov/
 scraping_output/
 *.db
 .scrapling/
+output.md
+ROADMAP.md
 
 # ── Editors & OS ───────────────────────────────────────────
 .vscode/
