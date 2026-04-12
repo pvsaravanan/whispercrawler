@@ -154,6 +154,7 @@ QuoteSpider().start()
 ## Advanced Features
 
 ### Automatic Pagination Detection
+
 WhisperCrawler can automatically identify pagination links using structural heuristics and common patterns (Next, Page numbers, rel="next").
 
 ```python
@@ -171,6 +172,7 @@ for link in all_links:
 ```
 
 ### Structured Data (Schema) Detection
+
 WhisperCrawler automatically extracts and parses JSON-LD and Microdata from pages, returning them as Python dictionaries.
 
 ```python
@@ -187,6 +189,7 @@ if products:
 ```
 
 ### Page Analysis and Metadata Enrichment
+
 WhisperCrawler can automatically "learn" about a page by analyzing its meta-elements, including SEO tags, OpenGraph (Facebook/LinkedIn), and Twitter Cards.
 
 ```python
@@ -206,6 +209,7 @@ print(page.analyze(summary=True))
 ```
 
 ### Programmatic Regex Generation
+
 WhisperCrawler can analyze a group of elements and synthesize a regular expression that matches their patterns. This is ideal for identifying URL structures, price formats, or ID sequences.
 
 ```python
@@ -226,6 +230,7 @@ print(f"Price Pattern: {price_pattern}")
 ## Integrations
 
 ### Scrapy Integration
+
 WhisperCrawler provides a seamless decorator to replace Scrapy's default `parsel` selectors with its own adaptive engine. This allows you to use self-healing selectors directly within standard Scrapy spiders.
 
 ```python
@@ -233,16 +238,16 @@ from whispercrawler.integrations.scrapy import whisper_response
 
 class MySpider(scrapy.Spider):
     name = "my_spider"
-    
+
     @whisper_response
     def parse(self, response):
         # response is now powered by WhisperCrawler
         # Standard selection
         title = response.css("h1::text").get()
-        
+
         # Adaptive selection (survives site redesigns)
         price = response.css(".current-price", adaptive=True).get()
-        
+
         # WhisperCrawler specific helpers
         contact = response.find_by_text("Contact Us", partial=True)
 ```
@@ -276,12 +281,4 @@ We welcome contributions from the community! Whether you are fixing a bug, impro
 
 ## License
 
-**MIT License**
-
-Copyright (c) 2026, Saravanan P V
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+[**MIT License**](LICENSE)
