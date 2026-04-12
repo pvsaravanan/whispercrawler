@@ -247,9 +247,10 @@ async with AsyncDynamicSession(**kwargs) as session:
 
 ## Key Directories
 
-- **whispercrawler/core/:** Core functionality (_types, _storage, utils)
+- **whispercrawler/core/:** Core functionality (pagination, schema, analyzer, regex)
 - **whispercrawler/engines/:** Scraping engines (static, browser configs)  
 - **whispercrawler/fetchers/:** Different fetching strategies (requests, chrome, stealth)
+- **whispercrawler/integrations/:** Third-party integrations (Scrapy)
 - **whispercrawler/spiders/:** Spider framework (engine, scheduler, session)
 - **whispercrawler/tests/:** Comprehensive test suite organized by module
 - **docs/:** MkDocs documentation with multi-language support
@@ -282,6 +283,46 @@ def _select_random_browser(impersonate: ImpersonateType) -> Optional[BrowserType
 ```python
 _find_all_elements = XPath(".//*")
 _find_all_elements_with_spaces = XPath(".//*[normalize-space(text())]")
+```
+
+## Advanced API Capabilities
+
+### 1. Automatic Pagination Detection
+Use the `next_page` and `all_pages` properties on `Selector` objects to discover navigation links.
+```python
+next_url = page.next_page
+all_links = page.all_pages
+```
+
+### 2. Structured Data Extraction
+Access parsed JSON-LD and Microdata via the `schemas` property.
+```python
+product_schemas = page.find_schema("Product")
+all_site_data = page.schemas
+```
+
+### 3. Page Metadata Analysis
+Extract SEO, OpenGraph, and Twitter metadata using the `analyze()` method.
+```python
+metadata_dict = page.metadata
+readable_summary = page.analyze(summary=True)
+```
+
+### 4. Programmatic Regex Synthesis
+Generate regex patterns from a selection of elements using `generate_regex()`.
+```python
+# Create a pattern from all links in a list
+regex_pattern = page.css("a.product-link").generate_regex(attribute="href")
+```
+
+### 5. Scrapy Integration
+Use the `@whisper_response` decorator in Scrapy spiders to replace standard selectors with WhisperCrawler's adaptive engine.
+```python
+from whispercrawler.integrations.scrapy import whisper_response
+
+@whisper_response
+def parse(self, response):
+    title = response.css("h1::text").get()
 ```
 
 ## Development Workflow
