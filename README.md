@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.png" width="250" alt="WhisperCrawler Logo">
+</p>
+
 # WhisperCrawler
 
 Adaptive web scraping framework — fast, stealthy, and self-healing.
@@ -11,10 +15,10 @@ WhisperCrawler is a modern Python-based web scraping framework designed for spee
 
 ## Core Capabilities
 
-* **Anti-Bot Bypass**: Native integration with heavily-patched headless browsers to evade fingerprinting and perimeter security.
-* **Stealth Fingerprinting**: High-performance concurrent static HTTP fetcher supporting HTTP/3 and TLS fingerprinting.
-* **Self-Healing Selectors**: Adaptive parsing technology that recovers elements based on structural similarity when traditional CSS/XPath selectors fail.
-* **Distributed Readiness**: Built-in support for proxy rotation, session persistence, and concurrent request scheduling.
+- **Anti-Bot Bypass**: Native integration with heavily-patched headless browsers to evade fingerprinting and perimeter security.
+- **Stealth Fingerprinting**: High-performance concurrent static HTTP fetcher supporting HTTP/3 and TLS fingerprinting.
+- **Self-Healing Selectors**: Adaptive parsing technology that recovers elements based on structural similarity when traditional CSS/XPath selectors fail.
+- **Distributed Readiness**: Built-in support for proxy rotation, session persistence, and concurrent request scheduling.
 
 ## Installation
 
@@ -65,18 +69,20 @@ title = page.css("h1", adaptive=True)
 
 ## Fetcher Strategy Documentation
 
-| Fetcher | Implementation | Ideal For | Performance |
-|:--- |:--- |:--- |:--- |
-| **Crawler** | `curl_cffi` (HTTP/3) | Static HTML, REST APIs, JSON Endpoints | Ultra-Fast |
-| **GhostCrawler** | `Playwright` / `Patchright` | SPAs, Interactive JS Applications | Fast |
-| **ShadowCrawler** | `Camoufox` (Hardened Firefox) | Advanced anti-bot, Cloudflare, PerimeterX | Moderate |
+| Fetcher           | Implementation                | Ideal For                                 | Performance |
+| :---------------- | :---------------------------- | :---------------------------------------- | :---------- |
+| **Crawler**       | `curl_cffi` (HTTP/3)          | Static HTML, REST APIs, JSON Endpoints    | Ultra-Fast  |
+| **GhostCrawler**  | `Playwright` / `Patchright`   | SPAs, Interactive JS Applications         | Fast        |
+| **ShadowCrawler** | `Camoufox` (Hardened Firefox) | Advanced anti-bot, Cloudflare, PerimeterX | Moderate    |
 
 ## Technical Features
 
 ### Adaptive Parsing Engine
+
 WhisperCrawler introduces a resilient selection mechanism. When `auto_save=True` is enabled, the engine stores a structural fingerprint (tag name, attribute distributions, text density, and DOM depth) in a local SQLite database. If the website's layout changes and the selector fails, the `adaptive=True` mode triggers a similarity search to find the new location of the target element.
 
 ### Session Management
+
 Maintain shared state across multiple requests, including cookies, connection pools, and browser context.
 
 ```python
@@ -93,13 +99,14 @@ with DynamicSession(headless=True, max_pages=5) as session:
 ```
 
 ### Proxy Rotation with ProxyWheel
+
 The `ProxyWheel` utility handles intelligent proxy rotation and automatic quarantine for failing proxies.
 
 ```python
 from whispercrawler import Crawler, ProxyWheel
 
 rotator = ProxyWheel(
-    proxies=["http://proxy1:8080", "http://proxy2:8080"], 
+    proxies=["http://proxy1:8080", "http://proxy2:8080"],
     strategy="least_used"
 )
 
@@ -128,7 +135,7 @@ class QuoteSpider(Spider):
                 "text": quote.css(".text::text").get(),
                 "author": quote.css(".author::text").get(),
             }
-        
+
         if next_page := response.css("li.next a::attr(href)").get():
             yield Request(url=response.urljoin(next_page))
 
@@ -137,18 +144,19 @@ QuoteSpider().start()
 
 ## CLI Reference
 
-| Command | Sub-command | Parameters | Description |
-|:--- |:--- |:--- |:--- |
-| `whispercrawler` | `install` | `--force` | Setup browser binaries |
-| `whispercrawler` | `extract get` | `<url> <output>` | Command-line extraction |
-| `whispercrawler` | `shell` | | Interactive IPython environment |
-| `whispercrawler` | `mcp` | `--http` | Launch the MCP server |
+| Command          | Sub-command   | Parameters       | Description                     |
+| :--------------- | :------------ | :--------------- | :------------------------------ |
+| `whispercrawler` | `install`     | `--force`        | Setup browser binaries          |
+| `whispercrawler` | `extract get` | `<url> <output>` | Command-line extraction         |
+| `whispercrawler` | `shell`       |                  | Interactive IPython environment |
+| `whispercrawler` | `mcp`         | `--http`         | Launch the MCP server           |
 
 ## MCP Server Integration
 
 WhisperCrawler provides a Model Context Protocol (MCP) server, allowing AI agents (such as Claude Desktop) to perform real-time web research and data extraction.
 
 ### Configuration
+
 Add the following to your MCP settings file:
 
 ```json
@@ -172,4 +180,12 @@ We welcome contributions from the community! Whether you are fixing a bug, impro
 
 ## License
 
-This project is licensed under the MIT License.
+**MIT License**
+
+Copyright (c) 2026, Saravanan P V
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
