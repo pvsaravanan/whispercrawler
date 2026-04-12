@@ -53,18 +53,23 @@ whispercrawler/
 ├── engines/            # Browser engines and toolbelt
 │   ├── _browsers/      # Browser controllers (Playwright/Camoufox)
 │   └── toolbelt/       # Utilities (proxy rotation, fingerprints)
-└── core/
     ├── storage.py      # SQLite storage for adaptive parsing
+    ├── pagination.py   # Automatic 'Next' page and pagination detection
+    ├── schema.py       # JSON-LD and Microdata extraction
+    ├── analyzer.py     # SEO/Social metadata learning
+    ├── regex.py       # Programmatic regex synthesis
     ├── mixins.py       # Selector generation mixins
     ├── translator.py   # CSS to XPath translator
     └── utils/          # Shell utilities, helpers
+├── integrations/
+│   └── scrapy.py       # Scrapy @whisper_response decorator
 ```
 
 ### Key Classes
 
 | Class | Purpose |
 |-------|---------|
-| `Selector` / `Page` | HTML parsing, CSS/XPath selection, adaptive element recovery |
+| `Selector` / `Page` | HTML parsing, CSS/XPath, adaptive recovery, pagination, schemas, metadata |
 | `Fetcher` (`Crawler`) | Fast static HTTP requests via curl_cffi (HTTP/3, TLS fingerprinting) |
 | `DynamicFetcher` (`GhostCrawler`) | Playwright-based for JavaScript-heavy sites |
 | `StealthyFetcher` | Camoufox-based for Cloudflare/anti-bot protected sites |
@@ -139,4 +144,17 @@ class MySpider(Spider):
             yield Request(next_url)
 
 MySpider().start()
+
+# Advanced Selection
+page = Crawler.get(url)
+next_url = page.next_page             # Auto-detect next page
+schemas = page.schemas                 # JSON-LD/Microdata
+info = page.metadata                   # SEO/OG/Twitter tags
+regex = page.css("a").generate_regex("href") # Pattern synthesis
+
+# Scrapy Integration
+from whispercrawler.integrations.scrapy import whisper_response
+@whisper_response
+def parse(self, response):
+    title = response.css("h1::text").get()
 ```
