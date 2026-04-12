@@ -186,6 +186,25 @@ if products:
     print(f"Price from schema: {price}")
 ```
 
+### Page Analysis and Metadata Enrichment
+WhisperCrawler can automatically "learn" about a page by analyzing its meta-elements, including SEO tags, OpenGraph (Facebook/LinkedIn), and Twitter Cards.
+
+```python
+page = Crawler.get("https://example.com/article-1")
+
+# Get all metadata (SEO, OG, Twitter, Technical) as a dictionary
+info = page.metadata
+print(f"Page Author: {info['author']}")
+
+# Get a human-readable summary of the page information
+print(page.analyze(summary=True))
+# Output:
+# Title: Example Article
+# Description: This is a robust description...
+# Type: article
+# Site: NewsPort
+```
+
 ## Integrations
 
 ### Scrapy Integration

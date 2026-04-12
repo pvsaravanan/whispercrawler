@@ -46,6 +46,7 @@ from whispercrawler.core.translator import css_to_xpath as _css_to_xpath
 from whispercrawler.core.utils import clean_spaces, flatten, html_forbidden, log
 from whispercrawler.core.pagination import PaginationDetector
 from whispercrawler.core.schema import SchemaDetector
+from whispercrawler.core.analyzer import PageAnalyzer
 
 __DEFAULT_DB_FILE__ = str(Path(__file__).parent / "elements_storage.db")
 # Attributes that are Python reserved words and can't be used directly
@@ -1451,6 +1452,25 @@ class Selectors(List[Selector]):
         :return: A list of matching schema dictionaries.
         """
         return SchemaDetector(self).find_by_type(schema_type)
+
+    @property
+    def metadata(self) -> Dict[str, Any]:
+        """Extract SEO, social (OG/Twitter), and technical metadata from the page.
+        
+        :return: A dictionary containing the extracted metadata.
+        """
+        return PageAnalyzer(self).analyze().to_dict()
+
+    def analyze(self, summary: bool = False) -> str | Dict[str, Any]:
+        """Analyze the page and return a summary or a metadata dictionary.
+        
+        :param summary: If True, returns a human-readable string summary.
+        :return: A string summary or metadata dictionary.
+        """
+        analyzer = PageAnalyzer(self)
+        if summary:
+            return analyzer.summary()
+        return analyzer.analyze().to_dict()
 
     @property
     def length(self) -> int:
