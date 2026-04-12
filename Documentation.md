@@ -136,17 +136,22 @@ Located in `whispercrawler/proxy.py`, the `ProxyWheel` handles thread-safe rotat
 ## Component Deep Dive
 
 ### 1. `parser.py` (Core Extraction)
+- **`Selector`**: High-performance parser with adaptive recovery. Inherits capabilities from several core detectors.
+- **`PaginationDetector`**: Automatically identifies "Next" buttons and numerical pagination blocks using structural heuristics.
+- **`SchemaDetector`**: Extracts and parses JSON-LD and Microdata (Product, Organization, Event, etc.) into clean dictionaries.
+- **`PageAnalyzer`**: Analyzes meta-elements to extract SEO, OpenGraph, and Twitter Cards data.
+- **`RegexGenerator`**: Synthesizes regular expressions from selection groups to identify patterns in URLs, prices, or IDs.
 
-- **`Selector`**: Uses `__slots__` for a 40% memory reduction compared to generic dict-based objects. Supports chaining with methods like `siblings`, `parent`, or `find_similar()`.
-- **`TextHandler` & `AttributesHandler`**: Custom wrappers around standard types that allow fluent, chainable JSON dumps or type coercion.
+### 2. `fetchers/` (Stealth & Anti-Bot)
+- `requests.py`: Uses `curl_cffi` for blazing fast HTTP/3. This is memory light and extremely fast.
+- `stealth_chrome.py`: Utilizes `StealthySession` which includes native Cloudflare solver and **automatic ReCaptcha V2 solving** (via 2Captcha/Anti-Captcha).
+- `shadow.py`: Utilizes Camoufox and mouse jitter algorithms to trick behavioral analytics.
 
-### 2. `fetchers/requests.py` vs `fetchers/shadow.py`
+### 3. `integrations/`
+- **Scrapy Integration**: Includes the `@whisper_response` decorator and `WhisperResponse` proxy, which injects WhisperCrawler's adaptive selection engine directly into standard Scrapy spiders.
+- **MCP Server**: Programmatic endpoints for AI research agents.
 
-- `curl_cffi` acts as a C-binding for blazing fast HTTP/3. This is memory light and extremely fast.
-- `shadow.py` utilizes heavy runtime binaries. Mouse jitter algorithms (`random.randint` and small `time.sleep` intervals) trick behavioral analytics.
-
-### 3. `spiders/scheduler.py`
-
+### 4. `spiders/scheduler.py`
 - Inherits from `asyncio.PriorityQueue`.
 - Combines depth limits, deduplication hashing (combining Method, Headers, and Body), and ensures we don't fetch identical resource URIs unless explicitly bypasses.
 
