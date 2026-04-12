@@ -151,6 +151,25 @@ QuoteSpider().start()
 | `whispercrawler` | `shell`       |                  | Interactive IPython environment |
 | `whispercrawler` | `mcp`         | `--http`         | Launch the MCP server           |
 
+## Advanced Features
+
+### Automatic Pagination Detection
+WhisperCrawler can automatically identify pagination links using structural heuristics and common patterns (Next, Page numbers, rel="next").
+
+```python
+page = Crawler.get("https://blog.example.com")
+
+# Detect the next page URL automatically
+next_url = page.next_page
+if next_url:
+    next_page = Crawler.get(next_url)
+
+# Detect all available page links in a pagination block
+all_links = page.all_pages
+for link in all_links:
+    print(f"Found page: {link}")
+```
+
 ## Integrations
 
 ### Scrapy Integration

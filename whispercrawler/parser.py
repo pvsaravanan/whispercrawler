@@ -44,6 +44,7 @@ from whispercrawler.core.storage import (
 )
 from whispercrawler.core.translator import css_to_xpath as _css_to_xpath
 from whispercrawler.core.utils import clean_spaces, flatten, html_forbidden, log
+from whispercrawler.core.pagination import PaginationDetector
 
 __DEFAULT_DB_FILE__ = str(Path(__file__).parent / "elements_storage.db")
 # Attributes that are Python reserved words and can't be used directly
@@ -1405,6 +1406,32 @@ class Selectors(List[Selector]):
     def last(self) -> Optional[Selector]:
         """Returns the last Selector item of the current list or `None` if the list is empty"""
         return self[-1] if len(self) > 0 else None
+
+    @property
+    def next_page(self) -> Optional[str]:
+        """Attempt to automatically detect the 'Next' page URL.
+        
+        :return: Absolute URL to the next page or None if not found.
+        """
+        return PaginationDetector(self).get_next_page()
+
+    @property
+    def all_pages(self) -> List[str]:
+        """Attempt to automatically detect all pagination links on the page.
+        
+        :return: A list of absolute URLs to other pages.
+        """
+        return PaginationDetector(self).get_all_pages()
+
+    def pagination(self, mode: Literal["next", "all"] = "next") -> Optional[str] | List[str]:
+        """Generic method to resolve pagination.
+        
+        :param mode: 'next' to get the next page URL, 'all' to get all page links.
+        :return: Single URL string or a list of URL strings.
+        """
+        if mode == "next":
+            return self.next_page
+        return self.all_pages
 
     @property
     def length(self) -> int:
