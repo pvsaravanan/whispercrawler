@@ -1,0 +1,206 @@
+from unittest.mock import MagicMock, patch
+
+import pytest
+import pytest_httpbin
+from click.testing import CliRunner
+
+from whispercrawler.cli import delete, fetch, get, mcp, post, put, shell, stealthy_fetch
+from whispercrawler.parser import Selector
+
+
+@pytest_httpbin.use_class_based_httpbin
+def configure_selector_mock():
+    """Helper function to create a properly configured Selector mock"""
+    mock_response = MagicMock(spec=Selector)
+    mock_response.body = "<html><body>Test content</body></html>"
+    mock_response.html_content = "<html><body>Test content</body></html>"
+    mock_response.encoding = "utf-8"
+    mock_response.get_all_text.return_value = "Test content"
+    mock_response.css.return_value = [mock_response]
+    return mock_response
+
+
+class TestCLI:
+    """Test CLI functionality"""
+
+    @pytest.fixture
+    def html_url(self, httpbin):
+        return f"{httpbin.url}/html"
+
+    @pytest.fixture
+    def runner(self):
+        return CliRunner()
+
+    def test_shell_command(self, runner):
+        """Test shell command"""
+        with patch("whispercrawler.core.shell.CustomShell") as mock_shell:
+            mock_instance = MagicMock()
+            mock_shell.return_value = mock_instance
+
+            result = runner.invoke(shell)
+            assert result.exit_code == 0
+            mock_instance.start.assert_called_once()
+
+    def test_mcp_command(self, runner):
+        """Test MCP command"""
+        with patch("whispercrawler.core.ai.WhisperCrawlerMCPServer") as mock_server:
+            mock_instance = MagicMock()
+            mock_server.return_value = mock_instance
+
+            result = runner.invoke(mcp)
+            assert result.exit_code == 0
+            mock_instance.serve.assert_called_once()
+
+    def test_extract_get_command(self, runner, tmp_path, html_url):
+        """Test extract `get` command"""
+        output_file = tmp_path / "output.md"
+
+        with patch("whispercrawler.fetchers.Fetcher.get") as mock_get:
+            mock_response = configure_selector_mock()
+            mock_response.status = 200
+            mock_get.return_value = mock_response
+
+            result = runner.invoke(get, [html_url, str(output_file)])
+            assert result.exit_code == 0
+
+        # Test with various options
+        with patch("whispercrawler.fetchers.Fetcher.get") as mock_get:
+            mock_get.return_value = mock_response
+
+            result = runner.invoke(
+                get,
+                [
+                    html_url,
+                    str(output_file),
+                    "-H",
+                    "User-Agent: Test",
+                    "--cookies",
+                    "session=abc123",
+                    "--timeout",
+                    "60",
+                    "--proxy",
+                    "http://proxy:8080",
+                    "-s",
+                    ".content",
+                    "-p",
+                    "page=1",
+                ],
+            )
+            assert result.exit_code == 0
+
+    def test_extract_post_command(self, runner, tmp_path, html_url):
+        """Test extract `post` command"""
+        output_file = tmp_path / "output.html"
+
+        with patch("whispercrawler.fetchers.Fetcher.post") as mock_post:
+            mock_response = configure_selector_mock()
+            mock_post.return_value = mock_response
+
+            result = runner.invoke(
+                post, [html_url, str(output_file), "-d", "key=value", "-j", '{"data": "test"}']
+            )
+            assert result.exit_code == 0
+
+    def test_extract_put_command(self, runner, tmp_path, html_url):
+        """Test extract `put` command"""
+        output_file = tmp_path / "output.html"
+
+        with patch("whispercrawler.fetchers.Fetcher.put") as mock_put:
+            mock_response = configure_selector_mock()
+            mock_put.return_value = mock_response
+
+            result = runner.invoke(
+                put, [html_url, str(output_file), "-d", "key=value", "-j", '{"data": "test"}']
+            )
+            assert result.exit_code == 0
+
+    def test_extract_delete_command(self, runner, tmp_path, html_url):
+        """Test extract `delete` command"""
+        output_file = tmp_path / "output.html"
+
+        with patch("whispercrawler.fetchers.Fetcher.delete") as mock_delete:
+            mock_response = configure_selector_mock()
+            mock_delete.return_value = mock_response
+
+            result = runner.invoke(delete, [html_url, str(output_file)])
+            assert result.exit_code == 0
+
+    def test_extract_fetch_command(self, runner, tmp_path, html_url):
+        """Test extract fetch command"""
+        output_file = tmp_path / "output.txt"
+
+        with patch("whispercrawler.fetchers.DynamicFetcher.fetch") as mock_fetch:
+            mock_response = configure_selector_mock()
+            mock_fetch.return_value = mock_response
+
+            result = runner.invoke(
+                fetch, [html_url, str(output_file), "--headless", "--timeout", "60000"]
+            )
+            assert result.exit_code == 0
+
+    def test_extract_stealthy_fetch_command(self, runner, tmp_path, html_url):
+        """Test extract fetch command"""
+        output_file = tmp_path / "output.md"
+
+        with patch("whispercrawler.fetchers.StealthyFetcher.fetch") as mock_fetch:
+            mock_response = configure_selector_mock()
+            mock_fetch.return_value = mock_response
+
+            result = runner.invoke(
+                stealthy_fetch,
+                [
+                    html_url,
+                    str(output_file),
+                    "--headless",
+                    "--css-selector",
+                    "body",
+                    "--timeout",
+                    "60000",
+                ],
+            )
+            assert result.exit_code == 0
+
+    def test_invalid_arguments(self, runner, html_url):
+        """Test invalid arguments handling"""
+        # Missing required arguments
+        result = runner.invoke(get)
+        assert result.exit_code != 0
+
+        _ = runner.invoke(get, [html_url, "output.invalid"])
+        # Should handle the error gracefully
+
+    def test_impersonate_comma_separated(self, runner, tmp_path, html_url):
+        """Test that comma-separated impersonate values are parsed correctly"""
+        output_file = tmp_path / "output.md"
+
+        with patch("whispercrawler.fetchers.Fetcher.get") as mock_get:
+            mock_response = configure_selector_mock()
+            mock_response.status = 200
+            mock_get.return_value = mock_response
+
+            result = runner.invoke(
+                get, [html_url, str(output_file), "--impersonate", "chrome,firefox,safari"]
+            )
+            assert result.exit_code == 0
+
+            # Verify that the impersonate argument was converted to a list
+            call_kwargs = mock_get.call_args[1]
+            assert isinstance(call_kwargs["impersonate"], list)
+            assert call_kwargs["impersonate"] == ["chrome", "firefox", "safari"]
+
+    def test_impersonate_single_browser(self, runner, tmp_path, html_url):
+        """Test that single impersonate value remains as string"""
+        output_file = tmp_path / "output.md"
+
+        with patch("whispercrawler.fetchers.Fetcher.get") as mock_get:
+            mock_response = configure_selector_mock()
+            mock_response.status = 200
+            mock_get.return_value = mock_response
+
+            result = runner.invoke(get, [html_url, str(output_file), "--impersonate", "chrome"])
+            assert result.exit_code == 0
+
+            # Verify that the impersonate argument remains a string
+            call_kwargs = mock_get.call_args[1]
+            assert isinstance(call_kwargs["impersonate"], str)
+            assert call_kwargs["impersonate"] == "chrome"
