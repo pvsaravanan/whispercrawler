@@ -1,0 +1,848 @@
+from pathlib import Path
+from subprocess import check_output
+from sys import executable as python_executable
+
+from orjson import JSONDecodeError
+from orjson import loads as json_loads
+
+from whispercrawler.core._types import Any, Callable, Dict, List, Optional, Tuple
+from whispercrawler.core.utils import log
+from whispercrawler.core.utils._shell import _CookieParser, _ParseHeaders
+from whispercrawler.engines.toolbelt.custom import Response
+
+try:
+    from click import Choice, argument, command, group, option
+except (ImportError, ModuleNotFoundError) as e:
+    raise ModuleNotFoundError(
+        "You need to install whispercrawler with any of the extras to enable Shell commands. See: https://whispercrawler.readthedocs.io/en/latest/#installation"
+    ) from e
+
+__OUTPUT_FILE_HELP__ = "The output file path can be an HTML file, a Markdown file of the HTML content, or the text content itself. Use file extensions (`.html`/`.md`/`.txt`) respectively."
+__PACKAGE_DIR__ = Path(__file__).parent
+
+
+def __Execute(cmd: List[str], help_line: str) -> None:  # pragma: no cover
+    print(f"Installing {help_line}...")
+    _ = check_output(cmd, shell=False)  # nosec B603
+    # I meant to not use try except here
+
+
+def __ParseJSONData(json_string: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """Parse JSON string into a Python object"""
+    if not json_string:
+        return None
+
+    try:
+        return json_loads(json_string)
+    except JSONDecodeError as err:  # pragma: no cover
+        raise ValueError(f"Invalid JSON data '{json_string}': {err}")
+
+
+def __Request_and_Save(
+    fetcher_func: Callable[..., Response],
+    url: str,
+    output_file: str,
+    css_selector: Optional[str] = None,
+    **kwargs,
+) -> None:
+    """Make a request using the specified fetcher function and save the result"""
+    from whispercrawler.core.shell import Convertor
+
+    # Handle relative paths - convert to an absolute path based on the current working directory
+    output_path = Path(output_file)
+    if not output_path.is_absolute():
+        output_path = Path.cwd() / output_file
+
+    response = fetcher_func(url, **kwargs)
+    Convertor.write_content_to_file(response, str(output_path), css_selector)
+    log.info(f"Content successfully saved to '{output_path}'")
+
+
+def __ParseExtractArguments(
+    headers: List[str], cookies: str, params: str, json: Optional[str] = None
+) -> Tuple[Dict[str, str], Dict[str, str], Dict[str, str], Optional[Dict[str, str]]]:
+    """Parse arguments for extract command"""
+    parsed_headers, parsed_cookies = _ParseHeaders(headers)
+    if cookies:
+        for key, value in _CookieParser(cookies):
+            try:
+                parsed_cookies[key] = value
+            except Exception as err:
+                raise ValueError(f"Could not parse cookies '{cookies}': {err}")
+
+    parsed_json = __ParseJSONData(json)
+    parsed_params = {}
+    for param in params:
+        if "=" in param:
+            key, value = param.split("=", 1)
+            parsed_params[key] = value
+
+    return parsed_headers, parsed_cookies, parsed_params, parsed_json
+
+
+def __BuildRequest(
+    headers: List[str], cookies: str, params: str, json: Optional[str] = None, **kwargs
+) -> Dict:
+    """Build a request object using the specified arguments"""
+    # Parse parameters
+    parsed_headers, parsed_cookies, parsed_params, parsed_json = __ParseExtractArguments(
+        headers, cookies, params, json
+    )
+    # Build request arguments
+    request_kwargs: Dict[str, Any] = {
+        "headers": parsed_headers if parsed_headers else None,
+        "cookies": parsed_cookies if parsed_cookies else None,
+    }
+    if parsed_json:
+        request_kwargs["json"] = parsed_json
+    if parsed_params:
+        request_kwargs["params"] = parsed_params
+    if "proxy" in kwargs:
+        request_kwargs["proxy"] = kwargs.pop("proxy")
+
+    # Parse impersonate parameter if it contains commas (for random selection)
+    if "impersonate" in kwargs and "," in (kwargs.get("impersonate") or ""):
+        kwargs["impersonate"] = [browser.strip() for browser in kwargs["impersonate"].split(",")]
+
+    return {**request_kwargs, **kwargs}
+
+
+@command(help="Install all WhisperCrawler's Fetchers dependencies")
+@option(
+    "-f",
+    "--force",
+    "force",
+    is_flag=True,
+    default=False,
+    type=bool,
+    help="Force WhisperCrawler to reinstall all Fetchers dependencies",
+)
+def install(force):  # pragma: no cover
+    if force or not __PACKAGE_DIR__.joinpath(".whispercrawler_dependencies_installed").exists():
+        __Execute(
+            [python_executable, "-m", "playwright", "install", "chromium"],
+            "Playwright browsers",
+        )
+        __Execute(
+            [
+                python_executable,
+                "-m",
+                "playwright",
+                "install-deps",
+                "chromium",
+            ],
+            "Playwright dependencies",
+        )
+        from tld.utils import update_tld_names
+
+        update_tld_names(fail_silently=True)
+        # if no errors raised by the above commands, then we add the below file
+        __PACKAGE_DIR__.joinpath(".whispercrawler_dependencies_installed").touch()
+    else:
+        print("The dependencies are already installed")
+
+
+@command(help="Run WhisperCrawler's MCP server (Check the docs for more info).")
+@option(
+    "--http",
+    is_flag=True,
+    default=False,
+    help="Whether to run the MCP server in streamable-http transport or leave it as stdio (Default: False)",
+)
+@option(
+    "--host",
+    type=str,
+    default="0.0.0.0",
+    help="The host to use if streamable-http transport is enabled (Default: '0.0.0.0')",
+)
+@option(
+    "--port",
+    type=int,
+    default=8000,
+    help="The port to use if streamable-http transport is enabled (Default: 8000)",
+)
+def mcp(http, host, port):
+    from whispercrawler.core.ai import WhisperCrawlerMCPServer
+
+    server = WhisperCrawlerMCPServer()
+    server.serve(http, host, port)
+
+
+@command(help="Interactive scraping console")
+@option(
+    "-c",
+    "--code",
+    "code",
+    is_flag=False,
+    default="",
+    type=str,
+    help="Evaluate the code in the shell, print the result and exit",
+)
+@option(
+    "-L",
+    "--loglevel",
+    "level",
+    is_flag=False,
+    default="debug",
+    type=Choice(["debug", "info", "warning", "error", "critical", "fatal"], case_sensitive=False),
+    help="Log level (default: DEBUG)",
+)
+def shell(code, level):
+    from whispercrawler.core.shell import CustomShell
+
+    console = CustomShell(code=code, log_level=level)
+    console.start()
+
+
+@group(
+    help="Fetch web pages using various fetchers and extract full/selected HTML content as HTML, Markdown, or extract text content."
+)
+def extract():
+    """Extract content from web pages and save to files"""
+    pass
+
+
+@extract.command(
+    help=f"Perform a GET request and save the content to a file.\n\n{__OUTPUT_FILE_HELP__}"
+)
+@argument("url", required=True)
+@argument("output_file", required=True)
+@option(
+    "--headers",
+    "-H",
+    multiple=True,
+    help='HTTP headers in format "Key: Value" (can be used multiple times)',
+)
+@option("--cookies", help='Cookies string in format "name1=value1; name2=value2"')
+@option("--timeout", type=int, default=30, help="Request timeout in seconds (default: 30)")
+@option("--proxy", help='Proxy URL in format "http://username:password@host:port"')
+@option(
+    "--css-selector",
+    "-s",
+    help="CSS selector to extract specific content from the page. It returns all matches.",
+)
+@option(
+    "--params",
+    "-p",
+    multiple=True,
+    help='Query parameters in format "key=value" (can be used multiple times)',
+)
+@option(
+    "--follow-redirects/--no-follow-redirects",
+    default=True,
+    help="Whether to follow redirects (default: True)",
+)
+@option(
+    "--verify/--no-verify",
+    default=True,
+    help="Whether to verify SSL certificates (default: True)",
+)
+@option(
+    "--impersonate",
+    help="Browser to impersonate. Can be a single browser (e.g., chrome) or comma-separated list for random selection (e.g., chrome,firefox,safari).",
+)
+@option(
+    "--stealthy-headers/--no-stealthy-headers",
+    default=True,
+    help="Use stealthy browser headers (default: True)",
+)
+def get(
+    url,
+    output_file,
+    headers,
+    cookies,
+    timeout,
+    proxy,
+    css_selector,
+    params,
+    follow_redirects,
+    verify,
+    impersonate,
+    stealthy_headers,
+):
+    """
+    Perform a GET request and save the content to a file.
+
+    :param url: Target URL for the request.
+    :param output_file: Output file path (.md for Markdown, .html for HTML).
+    :param headers: HTTP headers to include in the request.
+    :param cookies: Cookies to use in the request.
+    :param timeout: Number of seconds to wait before timing out.
+    :param proxy: Proxy URL to use. (Format: "http://username:password@localhost:8030")
+    :param css_selector: CSS selector to extract specific content.
+    :param params: Query string parameters for the request.
+    :param follow_redirects: Whether to follow redirects.
+    :param verify: Whether to verify HTTPS certificates.
+    :param impersonate: Browser version to impersonate.
+    :param stealthy_headers: If enabled, creates and adds real browser headers.
+    """
+
+    kwargs = __BuildRequest(
+        headers,
+        cookies,
+        params,
+        None,
+        timeout=timeout,
+        follow_redirects=follow_redirects,
+        verify=verify,
+        stealthy_headers=stealthy_headers,
+        impersonate=impersonate,
+        proxy=proxy,
+    )
+    from whispercrawler.fetchers import Fetcher
+
+    __Request_and_Save(Fetcher.get, url, output_file, css_selector, **kwargs)
+
+
+@extract.command(
+    help=f"Perform a POST request and save the content to a file.\n\n{__OUTPUT_FILE_HELP__}"
+)
+@argument("url", required=True)
+@argument("output_file", required=True)
+@option(
+    "--data",
+    "-d",
+    help='Form data to include in the request body (as string, ex: "param1=value1&param2=value2")',
+)
+@option("--json", "-j", help="JSON data to include in the request body (as string)")
+@option(
+    "--headers",
+    "-H",
+    multiple=True,
+    help='HTTP headers in format "Key: Value" (can be used multiple times)',
+)
+@option("--cookies", help='Cookies string in format "name1=value1; name2=value2"')
+@option("--timeout", type=int, default=30, help="Request timeout in seconds (default: 30)")
+@option("--proxy", help='Proxy URL in format "http://username:password@host:port"')
+@option(
+    "--css-selector",
+    "-s",
+    help="CSS selector to extract specific content from the page. It returns all matches.",
+)
+@option(
+    "--params",
+    "-p",
+    multiple=True,
+    help='Query parameters in format "key=value" (can be used multiple times)',
+)
+@option(
+    "--follow-redirects/--no-follow-redirects",
+    default=True,
+    help="Whether to follow redirects (default: True)",
+)
+@option(
+    "--verify/--no-verify",
+    default=True,
+    help="Whether to verify SSL certificates (default: True)",
+)
+@option(
+    "--impersonate",
+    help="Browser to impersonate. Can be a single browser (e.g., chrome) or comma-separated list for random selection (e.g., chrome,firefox,safari).",
+)
+@option(
+    "--stealthy-headers/--no-stealthy-headers",
+    default=True,
+    help="Use stealthy browser headers (default: True)",
+)
+def post(
+    url,
+    output_file,
+    data,
+    json,
+    headers,
+    cookies,
+    timeout,
+    proxy,
+    css_selector,
+    params,
+    follow_redirects,
+    verify,
+    impersonate,
+    stealthy_headers,
+):
+    """
+    Perform a POST request and save the content to a file.
+
+    :param url: Target URL for the request.
+    :param output_file: Output file path (.md for Markdown, .html for HTML).
+    :param data: Form data to include in the request body. (as string, ex: "param1=value1&param2=value2")
+    :param json: A JSON serializable object to include in the body of the request.
+    :param headers: Headers to include in the request.
+    :param cookies: Cookies to use in the request.
+    :param timeout: Number of seconds to wait before timing out.
+    :param proxy: Proxy URL to use.
+    :param css_selector: CSS selector to extract specific content.
+    :param params: Query string parameters for the request.
+    :param follow_redirects: Whether to follow redirects.
+    :param verify: Whether to verify HTTPS certificates.
+    :param impersonate: Browser version to impersonate.
+    :param stealthy_headers: If enabled, creates and adds real browser headers.
+    """
+
+    kwargs = __BuildRequest(
+        headers,
+        cookies,
+        params,
+        json,
+        timeout=timeout,
+        follow_redirects=follow_redirects,
+        verify=verify,
+        stealthy_headers=stealthy_headers,
+        impersonate=impersonate,
+        proxy=proxy,
+        data=data,
+    )
+    from whispercrawler.fetchers import Fetcher
+
+    __Request_and_Save(Fetcher.post, url, output_file, css_selector, **kwargs)
+
+
+@extract.command(
+    help=f"Perform a PUT request and save the content to a file.\n\n{__OUTPUT_FILE_HELP__}"
+)
+@argument("url", required=True)
+@argument("output_file", required=True)
+@option("--data", "-d", help="Form data to include in the request body")
+@option("--json", "-j", help="JSON data to include in the request body (as string)")
+@option(
+    "--headers",
+    "-H",
+    multiple=True,
+    help='HTTP headers in format "Key: Value" (can be used multiple times)',
+)
+@option("--cookies", help='Cookies string in format "name1=value1; name2=value2"')
+@option("--timeout", type=int, default=30, help="Request timeout in seconds (default: 30)")
+@option("--proxy", help='Proxy URL in format "http://username:password@host:port"')
+@option(
+    "--css-selector",
+    "-s",
+    help="CSS selector to extract specific content from the page. It returns all matches.",
+)
+@option(
+    "--params",
+    "-p",
+    multiple=True,
+    help='Query parameters in format "key=value" (can be used multiple times)',
+)
+@option(
+    "--follow-redirects/--no-follow-redirects",
+    default=True,
+    help="Whether to follow redirects (default: True)",
+)
+@option(
+    "--verify/--no-verify",
+    default=True,
+    help="Whether to verify SSL certificates (default: True)",
+)
+@option(
+    "--impersonate",
+    help="Browser to impersonate. Can be a single browser (e.g., chrome) or comma-separated list for random selection (e.g., chrome,firefox,safari).",
+)
+@option(
+    "--stealthy-headers/--no-stealthy-headers",
+    default=True,
+    help="Use stealthy browser headers (default: True)",
+)
+def put(
+    url,
+    output_file,
+    data,
+    json,
+    headers,
+    cookies,
+    timeout,
+    proxy,
+    css_selector,
+    params,
+    follow_redirects,
+    verify,
+    impersonate,
+    stealthy_headers,
+):
+    """
+    Perform a PUT request and save the content to a file.
+
+    :param url: Target URL for the request.
+    :param output_file: Output file path (.md for Markdown, .html for HTML).
+    :param data: Form data to include in the request body.
+    :param json: A JSON serializable object to include in the body of the request.
+    :param headers: Headers to include in the request.
+    :param cookies: Cookies to use in the request.
+    :param timeout: Number of seconds to wait before timing out.
+    :param proxy: Proxy URL to use.
+    :param css_selector: CSS selector to extract specific content.
+    :param params: Query string parameters for the request.
+    :param follow_redirects: Whether to follow redirects.
+    :param verify: Whether to verify HTTPS certificates.
+    :param impersonate: Browser version to impersonate.
+    :param stealthy_headers: If enabled, creates and adds real browser headers.
+    """
+
+    kwargs = __BuildRequest(
+        headers,
+        cookies,
+        params,
+        json,
+        timeout=timeout,
+        follow_redirects=follow_redirects,
+        verify=verify,
+        stealthy_headers=stealthy_headers,
+        impersonate=impersonate,
+        proxy=proxy,
+        data=data,
+    )
+    from whispercrawler.fetchers import Fetcher
+
+    __Request_and_Save(Fetcher.put, url, output_file, css_selector, **kwargs)
+
+
+@extract.command(
+    help=f"Perform a DELETE request and save the content to a file.\n\n{__OUTPUT_FILE_HELP__}"
+)
+@argument("url", required=True)
+@argument("output_file", required=True)
+@option(
+    "--headers",
+    "-H",
+    multiple=True,
+    help='HTTP headers in format "Key: Value" (can be used multiple times)',
+)
+@option("--cookies", help='Cookies string in format "name1=value1; name2=value2"')
+@option("--timeout", type=int, default=30, help="Request timeout in seconds (default: 30)")
+@option("--proxy", help='Proxy URL in format "http://username:password@host:port"')
+@option(
+    "--css-selector",
+    "-s",
+    help="CSS selector to extract specific content from the page. It returns all matches.",
+)
+@option(
+    "--params",
+    "-p",
+    multiple=True,
+    help='Query parameters in format "key=value" (can be used multiple times)',
+)
+@option(
+    "--follow-redirects/--no-follow-redirects",
+    default=True,
+    help="Whether to follow redirects (default: True)",
+)
+@option(
+    "--verify/--no-verify",
+    default=True,
+    help="Whether to verify SSL certificates (default: True)",
+)
+@option(
+    "--impersonate",
+    help="Browser to impersonate. Can be a single browser (e.g., chrome) or comma-separated list for random selection (e.g., chrome,firefox,safari).",
+)
+@option(
+    "--stealthy-headers/--no-stealthy-headers",
+    default=True,
+    help="Use stealthy browser headers (default: True)",
+)
+def delete(
+    url,
+    output_file,
+    headers,
+    cookies,
+    timeout,
+    proxy,
+    css_selector,
+    params,
+    follow_redirects,
+    verify,
+    impersonate,
+    stealthy_headers,
+):
+    """
+    Perform a DELETE request and save the content to a file.
+
+    :param url: Target URL for the request.
+    :param output_file: Output file path (.md for Markdown, .html for HTML).
+    :param headers: Headers to include in the request.
+    :param cookies: Cookies to use in the request.
+    :param timeout: Number of seconds to wait before timing out.
+    :param proxy: Proxy URL to use.
+    :param css_selector: CSS selector to extract specific content.
+    :param params: Query string parameters for the request.
+    :param follow_redirects: Whether to follow redirects.
+    :param verify: Whether to verify HTTPS certificates.
+    :param impersonate: Browser version to impersonate.
+    :param stealthy_headers: If enabled, creates and adds real browser headers.
+    """
+
+    kwargs = __BuildRequest(
+        headers,
+        cookies,
+        params,
+        None,
+        timeout=timeout,
+        follow_redirects=follow_redirects,
+        verify=verify,
+        stealthy_headers=stealthy_headers,
+        impersonate=impersonate,
+        proxy=proxy,
+    )
+    from whispercrawler.fetchers import Fetcher
+
+    __Request_and_Save(Fetcher.delete, url, output_file, css_selector, **kwargs)
+
+
+@extract.command(
+    help=f"Use DynamicFetcher to fetch content with browser automation.\n\n{__OUTPUT_FILE_HELP__}"
+)
+@argument("url", required=True)
+@argument("output_file", required=True)
+@option(
+    "--headless/--no-headless",
+    default=True,
+    help="Run browser in headless mode (default: True)",
+)
+@option(
+    "--disable-resources/--enable-resources",
+    default=False,
+    help="Drop unnecessary resources for speed boost (default: False)",
+)
+@option(
+    "--network-idle/--no-network-idle",
+    default=False,
+    help="Wait for network idle (default: False)",
+)
+@option(
+    "--timeout",
+    type=int,
+    default=30000,
+    help="Timeout in milliseconds (default: 30000)",
+)
+@option(
+    "--wait",
+    type=int,
+    default=0,
+    help="Additional wait time in milliseconds after page load (default: 0)",
+)
+@option(
+    "--css-selector",
+    "-s",
+    help="CSS selector to extract specific content from the page. It returns all matches.",
+)
+@option("--wait-selector", help="CSS selector to wait for before proceeding")
+@option(
+    "--locale", default=None, help="Specify user locale. Defaults to the system default locale."
+)
+@option(
+    "--real-chrome/--no-real-chrome",
+    default=False,
+    help="If you have a Chrome browser installed on your device, enable this, and the Fetcher will launch an instance of your browser and use it. (default: False)",
+)
+@option("--proxy", help='Proxy URL in format "http://username:password@host:port"')
+@option(
+    "--extra-headers",
+    "-H",
+    multiple=True,
+    help='Extra headers in format "Key: Value" (can be used multiple times)',
+)
+def fetch(
+    url,
+    output_file,
+    headless,
+    disable_resources,
+    network_idle,
+    timeout,
+    wait,
+    css_selector,
+    wait_selector,
+    locale,
+    real_chrome,
+    proxy,
+    extra_headers,
+):
+    """
+    Opens up a browser and fetch content using DynamicFetcher.
+
+    :param url: Target url.
+    :param output_file: Output file path (.md for Markdown, .html for HTML).
+    :param headless: Run the browser in headless/hidden or headful/visible mode.
+    :param disable_resources: Drop requests of unnecessary resources for a speed boost.
+    :param network_idle: Wait for the page until there are no network connections for at least 500 ms.
+    :param timeout: The timeout in milliseconds that is used in all operations and waits through the page.
+    :param wait: The time (milliseconds) the fetcher will wait after everything finishes before returning.
+    :param css_selector: CSS selector to extract specific content.
+    :param wait_selector: Wait for a specific CSS selector to be in a specific state.
+    :param locale: Set the locale for the browser.
+    :param real_chrome: If you have a Chrome browser installed on your device, enable this, and the Fetcher will launch an instance of your browser and use it.
+    :param proxy: The proxy to be used with requests.
+    :param extra_headers: Extra headers to add to the request.
+    """
+
+    # Parse parameters
+    parsed_headers, _ = _ParseHeaders(extra_headers, False)
+
+    # Build request arguments
+    kwargs = {
+        "headless": headless,
+        "disable_resources": disable_resources,
+        "network_idle": network_idle,
+        "timeout": timeout,
+        "locale": locale,
+        "real_chrome": real_chrome,
+    }
+
+    if wait > 0:
+        kwargs["wait"] = wait
+    if wait_selector:
+        kwargs["wait_selector"] = wait_selector
+    if proxy:
+        kwargs["proxy"] = proxy
+    if parsed_headers:
+        kwargs["extra_headers"] = parsed_headers
+
+    from whispercrawler.fetchers import DynamicFetcher
+
+    __Request_and_Save(DynamicFetcher.fetch, url, output_file, css_selector, **kwargs)
+
+
+@extract.command(
+    help=f"Use StealthyFetcher to fetch content with advanced stealth features.\n\n{__OUTPUT_FILE_HELP__}"
+)
+@argument("url", required=True)
+@argument("output_file", required=True)
+@option(
+    "--headless/--no-headless",
+    default=True,
+    help="Run browser in headless mode (default: True)",
+)
+@option(
+    "--disable-resources/--enable-resources",
+    default=False,
+    help="Drop unnecessary resources for speed boost (default: False)",
+)
+@option(
+    "--block-webrtc/--allow-webrtc",
+    default=False,
+    help="Block WebRTC entirely (default: False)",
+)
+@option(
+    "--solve-cloudflare/--no-solve-cloudflare",
+    default=False,
+    help="Solve Cloudflare challenges (default: False)",
+)
+@option("--allow-webgl/--block-webgl", default=True, help="Allow WebGL (default: True)")
+@option(
+    "--network-idle/--no-network-idle",
+    default=False,
+    help="Wait for network idle (default: False)",
+)
+@option(
+    "--real-chrome/--no-real-chrome",
+    default=False,
+    help="If you have a Chrome browser installed on your device, enable this, and the Fetcher will launch an instance of your browser and use it. (default: False)",
+)
+@option(
+    "--hide-canvas/--show-canvas",
+    default=False,
+    help="Add noise to canvas operations (default: False)",
+)
+@option(
+    "--timeout",
+    type=int,
+    default=30000,
+    help="Timeout in milliseconds (default: 30000)",
+)
+@option(
+    "--wait",
+    type=int,
+    default=0,
+    help="Additional wait time in milliseconds after page load (default: 0)",
+)
+@option(
+    "--css-selector",
+    "-s",
+    help="CSS selector to extract specific content from the page. It returns all matches.",
+)
+@option("--wait-selector", help="CSS selector to wait for before proceeding")
+@option("--proxy", help='Proxy URL in format "http://username:password@host:port"')
+@option(
+    "--extra-headers",
+    "-H",
+    multiple=True,
+    help='Extra headers in format "Key: Value" (can be used multiple times)',
+)
+def stealthy_fetch(
+    url,
+    output_file,
+    headless,
+    disable_resources,
+    block_webrtc,
+    solve_cloudflare,
+    allow_webgl,
+    network_idle,
+    real_chrome,
+    hide_canvas,
+    timeout,
+    wait,
+    css_selector,
+    wait_selector,
+    proxy,
+    extra_headers,
+):
+    """
+    Opens up a browser with advanced stealth features and fetch content using StealthyFetcher.
+
+    :param url: Target url.
+    :param output_file: Output file path (.md for Markdown, .html for HTML).
+    :param headless: Run the browser in headless/hidden, or headful/visible mode.
+    :param disable_resources: Drop requests of unnecessary resources for a speed boost.
+    :param block_webrtc: Blocks WebRTC entirely.
+    :param solve_cloudflare: Solves all types of the Cloudflare's Turnstile/Interstitial challenges.
+    :param allow_webgl: Allow WebGL (recommended to keep enabled).
+    :param network_idle: Wait for the page until there are no network connections for at least 500 ms.
+    :param real_chrome: If you have a Chrome browser installed on your device, enable this, and the Fetcher will launch an instance of your browser and use it.
+    :param hide_canvas: Add random noise to canvas operations to prevent fingerprinting.
+    :param timeout: The timeout in milliseconds that is used in all operations and waits through the page.
+    :param wait: The time (milliseconds) the fetcher will wait after everything finishes before returning.
+    :param css_selector: CSS selector to extract specific content.
+    :param wait_selector: Wait for a specific CSS selector to be in a specific state.
+    :param proxy: The proxy to be used with requests.
+    :param extra_headers: Extra headers to add to the request.
+    """
+
+    # Parse parameters
+    parsed_headers, _ = _ParseHeaders(extra_headers, False)
+
+    # Build request arguments
+    kwargs = {
+        "headless": headless,
+        "disable_resources": disable_resources,
+        "block_webrtc": block_webrtc,
+        "solve_cloudflare": solve_cloudflare,
+        "allow_webgl": allow_webgl,
+        "network_idle": network_idle,
+        "real_chrome": real_chrome,
+        "hide_canvas": hide_canvas,
+        "timeout": timeout,
+    }
+
+    if wait > 0:
+        kwargs["wait"] = wait
+    if wait_selector:
+        kwargs["wait_selector"] = wait_selector
+    if proxy:
+        kwargs["proxy"] = proxy
+    if parsed_headers:
+        kwargs["extra_headers"] = parsed_headers
+
+    from whispercrawler.fetchers import StealthyFetcher
+
+    __Request_and_Save(StealthyFetcher.fetch, url, output_file, css_selector, **kwargs)
+
+
+@group()
+def main():
+    pass
+
+
+# Adding commands
+main.add_command(install)
+main.add_command(shell)
+main.add_command(extract)
+main.add_command(mcp)
