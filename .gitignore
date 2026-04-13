@@ -1,0 +1,46 @@
+# ── Secrets ────────────────────────────────────────────────
+.env
+
+# ── Python ─────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.whl
+
+# ── Virtual Environments ────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ── Testing & Coverage ──────────────────────────────────────
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.tox/
+
+# ── Scraping Artefacts ──────────────────────────────────────
+scraping_output/
+*.db
+.scrapling/
+
+# ── Editors & OS ───────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Build & Packaging ───────────────────────────────────────
+*.so
+*.pdb

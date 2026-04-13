@@ -1,0 +1,80 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "whispercrawler"
+version = "0.1.1"
+description = "An adaptive web scraping framework — fast, stealthy, and self-healing"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Saravanan P V" }]
+keywords = ["scraping", "crawling", "web", "adaptive", "stealth", "async"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
+    "Framework :: AsyncIO",
+]
+
+# WhisperCrawler configuration
+
+
+dependencies = [
+    "lxml>=5.2.0",
+    "cssselect>=1.2.0",
+    "msgspec>=0.18.0",
+    "orjson>=3.10.0",
+    "aiosqlite>=0.20.0",
+    "markdownify>=0.13.0",
+    "click>=8.1.0",
+    "rich>=13.7.0",
+    "ipython>=8.0.0",
+]
+
+[project.optional-dependencies]
+fetchers = [
+    "curl-cffi>=0.7.0",
+    "playwright>=1.44.0",
+    "patchright>=1.44.0",
+    "camoufox[geoip]>=0.4.0",
+]
+mcp = ["mcp>=1.0.0"]
+dev = [
+    "pytest>=8.2.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=5.0.0",
+    "ruff>=0.4.0",
+    "mypy>=1.10.0",
+]
+
+[project.scripts]
+whispercrawler = "whispercrawler.cli:main"
+whispercrawler-mcp = "whispercrawler.mcp_server:main"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["whispercrawler/tests"]
+addopts = "-v --tb=short"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+select = ["E", "W", "F", "I", "B", "UP"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+ignore_missing_imports = true
+
+[tool.coverage.run]
+source = ["whispercrawler"]
+omit = ["whispercrawler/tests/*", "*/__init__.py"]
+
+[tool.coverage.report]
+fail_under = 80

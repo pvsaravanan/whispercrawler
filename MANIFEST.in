@@ -1,0 +1,12 @@
+include LICENSE
+include *.db
+include *.js
+include whispercrawler/*.db
+include whispercrawler/*.db*
+include whispercrawler/*.db-*
+include whispercrawler/py.typed
+include whispercrawler/.whispercrawler_dependencies_installed
+include .whispercrawler_dependencies_installed
+
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
