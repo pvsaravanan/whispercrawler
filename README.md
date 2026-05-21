@@ -1,6 +1,3 @@
-<p align="center">
-  <img src="assets/logo.png" width="220" alt="WhisperCrawler Logo">
-</p>
 <div align="center">
   <pre>
 ██╗    ██╗██╗  ██╗██╗███████╗██████╗ ███████╗██████╗ 
