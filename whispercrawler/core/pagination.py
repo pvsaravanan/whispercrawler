@@ -1,4 +1,3 @@
-import re
 from typing import Any, List, Optional, Set
 from urllib.parse import urljoin
 
