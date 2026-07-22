@@ -30,6 +30,8 @@ htmlcov/
 # ── Scraping Artefacts ──────────────────────────────────────
 scraping_output/
 *.db
+*.db-shm
+*.db-wal
 .scrapling/
 output.md
 ROADMAP.md
