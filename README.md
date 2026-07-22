@@ -1,5 +1,6 @@
 <div align="center">
-  <pre>
+
+```text
 ██╗    ██╗██╗  ██╗██╗███████╗██████╗ ███████╗██████╗ 
 ██║    ██║██║  ██║██║██╔════╝██╔══██╗██╔════╝██╔══██╗
 ██║ █╗ ██║███████║██║███████╗██████╔╝█████╗  ██████╔╝
@@ -13,19 +14,20 @@
 ██║     ██╔══██╗██╔══██║██║███╗██║██║     ██╔══╝  ██╔══██╗
 ╚██████╗██║  ██║██║  ██║╚███╔███╔╝███████╗███████╗██║  ██║
  ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚══╝╚══╝ ╚══════╝╚══════╝╚═╝  ╚═╝
- </pre>
-</div>
+```
 
-  <p align="center">
-    <strong>The adaptive web scraping framework — fast, stealthy, and self-healing.</strong>
-  </p>
-  <p align="center">
-    <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+"></a>
-    <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License"></a>
-    <a href="https://github.com/WhisperCrawl/WhisperCrawler"><img src="https://img.shields.io/badge/build-passing-brightgreen.svg" alt="Build Status"></a>
-    <a href="https://github.com/WhisperCrawl/WhisperCrawler"><img src="https://img.shields.io/badge/coverage-80%25-brightgreen.svg" alt="Coverage"></a>
-  </p>
+<p align="center">
+  <strong>The adaptive web scraping framework — fast, stealthy, and self-healing.</strong>
 </p>
+
+<p align="center">
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License"></a>
+  <a href="https://github.com/WhisperCrawl/WhisperCrawler"><img src="https://img.shields.io/badge/build-passing-brightgreen.svg" alt="Build Status"></a>
+  <a href="https://github.com/WhisperCrawl/WhisperCrawler"><img src="https://img.shields.io/badge/coverage-80%25-brightgreen.svg" alt="Coverage"></a>
+</p>
+
+</div>
 
 ---
 
@@ -35,16 +37,16 @@
 
 ### Why WhisperCrawler?
 
-*   **Unbeatable Stealth**: Native bypass for Turnstile, Cloudflare, and advanced WAFs.
-*   **Self-Healing DOM**: Adaptive parsing recovers data even when CSS/XPath structures change.
-*   **High Performance**: Built on `curl_cffi` for HTTP/3 speed and `Playwright` for dynamic precision.
-*   **Distributed Ready**: Seamless proxy rotation, session persistence, and persistent crawling.
+- **Unbeatable Stealth**: Native bypass for Turnstile, Cloudflare, and advanced WAFs.
+- **Self-Healing DOM**: Adaptive parsing recovers data even when CSS/XPath structures change.
+- **High Performance**: Built on `curl_cffi` for HTTP/3 speed and `Playwright` for dynamic precision.
+- **Distributed Ready**: Seamless proxy rotation, session persistence, and persistent crawling.
 
 ---
 
 ## Installation
 
-Install the core package via pip:
+Install the core package via `pip`:
 
 ```bash
 pip install whispercrawler
