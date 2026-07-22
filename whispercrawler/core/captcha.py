@@ -1,8 +1,6 @@
 import time
-from typing import Any, Dict, Optional
+from typing import Optional
 import requests
-
-from whispercrawler.core.utils import log
 
 class CaptchaServiceError(Exception):
     """Base exception for captcha service errors."""

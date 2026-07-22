@@ -1,8 +1,7 @@
 from whispercrawler.engines.static import (
     AsyncFetcherClient as _AsyncFetcherClient,
-)
-from whispercrawler.engines.static import (
     FetcherClient as _FetcherClient,
+    FetcherSession,
 )
 from whispercrawler.engines.toolbelt.custom import BaseFetcher
 
@@ -26,3 +25,6 @@ class AsyncFetcher(BaseFetcher):
     post = __AsyncFetcherClientInstance__.post
     put = __AsyncFetcherClientInstance__.put
     delete = __AsyncFetcherClientInstance__.delete
+
+
+__all__ = ["Fetcher", "AsyncFetcher", "FetcherSession"]

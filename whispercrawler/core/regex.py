@@ -1,5 +1,5 @@
 import re
-from typing import List, Optional
+from typing import List
 
 class RegexGenerator:
     """Generates a regular expression that matches a set of example strings."""

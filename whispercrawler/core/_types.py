@@ -3,11 +3,32 @@ Type definitions for type checking purposes.
 """
 
 from typing import (
+    TYPE_CHECKING,
+    Any,
+    AsyncGenerator,
+    Awaitable,
+    Callable,
+    Dict,
+    Generator,
+    Generic,
+    Iterable,
+    Iterator,
+    List,
     Literal,
+    Mapping,
+    Optional,
+    Pattern,
+    Protocol,
+    Sequence,
+    Set,
+    SupportsIndex,
+    Tuple,
+    TypeVar,
     Union,
+    cast,
+    overload,
 )
-
-from typing_extensions import TypedDict
+from typing_extensions import Self, TypeAlias, TypedDict, Unpack
 
 # Proxy can be a string URL or a dict (Playwright format: {"server": "...", "username": "...", "password": "..."})
 ProxyType = Union[str, dict[str, str]]
@@ -30,3 +51,42 @@ class SetCookieParam(TypedDict, total=False):
     secure: bool | None
     sameSite: Literal["Lax", "None", "Strict"] | None
     partitionKey: str | None
+
+
+__all__ = [
+    "TYPE_CHECKING",
+    "Any",
+    "AsyncGenerator",
+    "Awaitable",
+    "Callable",
+    "Dict",
+    "Generator",
+    "Generic",
+    "Iterable",
+    "Iterator",
+    "List",
+    "Literal",
+    "Mapping",
+    "Optional",
+    "Pattern",
+    "Protocol",
+    "Sequence",
+    "Set",
+    "SupportsIndex",
+    "Tuple",
+    "TypeAlias",
+    "TypeVar",
+    "Union",
+    "cast",
+    "overload",
+    "Self",
+    "TypedDict",
+    "Unpack",
+    "ProxyType",
+    "SUPPORTED_HTTP_METHODS",
+    "SelectorWaitStates",
+    "PageLoadStates",
+    "extraction_types",
+    "StrOrBytes",
+    "SetCookieParam",
+]
