@@ -188,6 +188,57 @@ class TestStatus:
         assert status["http://p1:8080"]["failures"] == 1
         assert status["http://p2:8080"]["active"] is True
 
+    def test_reports_seconds_remaining_not_a_raw_deadline(self):
+        """A monotonic deadline is not interpretable on its own.
+
+        `quarantine_seconds_remaining` is a duration the caller can act on directly.
+        """
+        clock = FakeClock()
+        rotator = _rotator(quarantine_seconds=300, _clock=clock)
+        rotator.mark_failed("http://p1:8080")
+
+        clock.advance(120)
+
+        entry = rotator.status()["http://p1:8080"]
+        assert entry["quarantine_seconds_remaining"] == pytest.approx(180.0)
+        assert "quarantine_until" not in entry
+
+    def test_active_proxy_has_no_remaining_time(self):
+        assert _rotator().status()["http://p1:8080"]["quarantine_seconds_remaining"] is None
+
+    def test_expired_quarantine_reports_none_not_a_negative(self):
+        """`active` and `quarantine_seconds_remaining` must never disagree."""
+        clock = FakeClock()
+        rotator = _rotator(quarantine_seconds=300, _clock=clock)
+        rotator.mark_failed("http://p1:8080")
+
+        clock.advance(400)  # deadline passed, but the field was never cleared
+
+        entry = rotator.status()["http://p1:8080"]
+        assert entry["active"] is True
+        assert entry["quarantine_seconds_remaining"] is None
+
+    def test_remaining_time_counts_down(self):
+        clock = FakeClock()
+        rotator = _rotator(quarantine_seconds=100, _clock=clock)
+        rotator.mark_failed("http://p1:8080")
+
+        first = rotator.status()["http://p1:8080"]["quarantine_seconds_remaining"]
+        clock.advance(30)
+        second = rotator.status()["http://p1:8080"]["quarantine_seconds_remaining"]
+
+        assert first == pytest.approx(100.0)
+        assert second == pytest.approx(70.0)
+
+    def test_quarantine_disabled_never_reports_remaining_time(self):
+        rotator = _rotator(quarantine_seconds=0)
+
+        rotator.mark_failed("http://p1:8080")
+
+        entry = rotator.status()["http://p1:8080"]
+        assert entry["failures"] == 1
+        assert entry["quarantine_seconds_remaining"] is None
+
 
 class TestAddRemove:
     def test_add_makes_a_proxy_available(self):
