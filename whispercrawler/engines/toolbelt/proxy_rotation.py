@@ -258,18 +258,30 @@ class ProxyRotator:
             return sum(1 for p in self._proxies if self._is_active(p))
 
     def status(self) -> Dict[str, Dict[str, object]]:
-        """Per-proxy diagnostics keyed by proxy key."""
+        """Per-proxy diagnostics keyed by proxy key.
+
+        `quarantine_seconds_remaining` is how much longer the proxy stays withheld,
+        or None when it is available. A duration rather than the internal monotonic
+        deadline, which is not interpretable on its own.
+        """
         with self._lock:
-            return {
-                key: {
-                    "active": state.quarantine_until is None
-                    or self._clock() >= state.quarantine_until,
+            now = self._clock()
+            report: Dict[str, Dict[str, object]] = {}
+            for key, state in self._state.items():
+                active = state.quarantine_until is None or now >= state.quarantine_until
+                report[key] = {
+                    "active": active,
                     "uses": state.uses,
                     "failures": state.failures,
-                    "quarantine_until": state.quarantine_until,
+                    # None whenever `active`, so the two can never disagree - an expired
+                    # deadline is not cleared eagerly and would otherwise go negative.
+                    "quarantine_seconds_remaining": (
+                        None
+                        if active or state.quarantine_until is None
+                        else state.quarantine_until - now
+                    ),
                 }
-                for key, state in self._state.items()
-            }
+            return report
 
     @property
     def proxies(self) -> List[ProxyType]:

@@ -34,19 +34,30 @@ rotator.status()     # per-proxy uses, failures, and quarantine deadline
 rotator.active_count # proxies not currently quarantined
 ```
 
-`status()` reports `quarantine_until` as a [`time.monotonic`][monotonic] value, or `None`
-when the proxy is not quarantined. Monotonic time is used so that an NTP correction
-cannot extend or collapse a quarantine window — but it is **not** a wall-clock timestamp
-and cannot be formatted as a date. Compare it against `time.monotonic()` to get the
-seconds remaining:
+`status()` returns one entry per proxy:
 
 ```python
-import time
-
-remaining = rotator.status()[proxy]["quarantine_until"]
-if remaining is not None:
-    print(f"{max(0.0, remaining - time.monotonic()):.0f}s left")
+{
+    "http://proxy1:8080": {
+        "active": False,                       # False while withheld
+        "uses": 12,
+        "failures": 1,
+        "quarantine_seconds_remaining": 180.0,  # None when active
+    },
+}
 ```
+
+`quarantine_seconds_remaining` counts down and is `None` whenever the proxy is
+available, so it never disagrees with `active` and never goes negative:
+
+```python
+for proxy, info in rotator.status().items():
+    if not info["active"]:
+        print(f"{proxy}: {info['quarantine_seconds_remaining']:.0f}s left")
+```
+
+Deadlines are tracked internally with [`time.monotonic`][monotonic] so that an NTP
+correction cannot extend or collapse a quarantine window.
 
 [monotonic]: https://docs.python.org/3/library/time.html#time.monotonic
 
