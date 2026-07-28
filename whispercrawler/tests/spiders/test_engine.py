@@ -508,6 +508,57 @@ class TestProcessRequest:
 
         assert engine.stats.items_scraped == 1
 
+    @pytest.mark.asyncio
+    async def test_is_blocked_exception_does_not_propagate(self):
+        """A raising is_blocked() hook must not escape and kill the crawl."""
+
+        def boom(response):
+            raise KeyError("X-Missing-Header")
+
+        spider = MockSpider(is_blocked_fn=boom)
+        engine = _make_engine(spider=spider)
+
+        request = Request("https://example.com", sid="default")
+        await engine._process_request(request)
+
+        assert len(spider.on_error_calls) == 1
+        assert isinstance(spider.on_error_calls[0][1], KeyError)
+
+    @pytest.mark.asyncio
+    async def test_retry_blocked_request_exception_does_not_propagate(self):
+        """A raising retry_blocked_request() hook must not escape and kill the crawl."""
+
+        def boom(request, response):
+            raise ValueError("bad retry request")
+
+        spider = MockSpider(
+            is_blocked_fn=lambda r: True,
+            retry_blocked_request_fn=boom,
+            max_blocked_retries=3,
+        )
+        engine = _make_engine(spider=spider)
+
+        request = Request("https://example.com", sid="default")
+        await engine._process_request(request)
+
+        assert len(spider.on_error_calls) == 1
+        assert isinstance(spider.on_error_calls[0][1], ValueError)
+
+    @pytest.mark.asyncio
+    async def test_is_blocked_exception_counts_as_failed_request(self):
+        """A crashing hook should be recorded as a failure, not silently dropped."""
+
+        def boom(response):
+            raise RuntimeError("hook exploded")
+
+        spider = MockSpider(is_blocked_fn=boom)
+        engine = _make_engine(spider=spider)
+
+        request = Request("https://example.com", sid="default")
+        await engine._process_request(request)
+
+        assert engine.stats.failed_requests_count == 1
+
 
 # ---------------------------------------------------------------------------
 # Tests: _task_wrapper
@@ -596,7 +647,7 @@ class TestCheckpointMethods:
             await engine._save_checkpoint()
 
             # Verify checkpoint file exists
-            checkpoint_path = Path(tmpdir) / "checkpoint.pkl"
+            checkpoint_path = Path(tmpdir) / "checkpoint.json"
             assert checkpoint_path.exists()
 
     @pytest.mark.asyncio
@@ -607,10 +658,15 @@ class TestCheckpointMethods:
             assert result is False
 
     @pytest.mark.asyncio
-    async def test_restore_from_checkpoint_raises_when_disabled(self):
+    async def test_restore_when_checkpointing_disabled_returns_false(self):
+        """With no crawldir there is nothing to restore, which is not an error.
+
+        This used to hit a bare `raise` with no active exception, surfacing as a
+        confusing "No active exception to reraise" RuntimeError.
+        """
         engine = _make_engine()  # no crawldir → checkpoint disabled
-        with pytest.raises(RuntimeError):
-            await engine._restore_from_checkpoint()
+
+        assert await engine._restore_from_checkpoint() is False
 
 
 # ---------------------------------------------------------------------------
@@ -734,7 +790,7 @@ class TestCrawl:
 
             await engine.crawl()
 
-            checkpoint_path = Path(tmpdir) / "checkpoint.pkl"
+            checkpoint_path = Path(tmpdir) / "checkpoint.json"
             assert not checkpoint_path.exists()  # Cleaned up
 
     @pytest.mark.asyncio
@@ -909,3 +965,111 @@ class TestPauseDuringCrawl:
         await engine.crawl()
 
         assert engine.paused is False
+
+
+# ---------------------------------------------------------------------------
+# Tests: checkpoint durability
+# ---------------------------------------------------------------------------
+
+
+class TestCheckpointDurability:
+    @pytest.mark.asyncio
+    async def test_inflight_requests_are_checkpointed(self):
+        """Regression: in-flight requests were marked seen but never saved."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            engine = _make_engine(crawldir=tmpdir)
+            inflight = Request("https://example.com/inflight", sid="default")
+            engine._inflight[id(inflight)] = inflight
+
+            await engine._save_checkpoint()
+            loaded = await engine._checkpoint_manager.load()
+
+            assert loaded is not None
+            assert [r.url for r in loaded.requests] == ["https://example.com/inflight"]
+
+    @pytest.mark.asyncio
+    async def test_inflight_and_queued_requests_both_checkpointed(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            engine = _make_engine(crawldir=tmpdir)
+            await engine.scheduler.enqueue(Request("https://example.com/queued", sid="default"))
+            inflight = Request("https://example.com/inflight", sid="default")
+            engine._inflight[id(inflight)] = inflight
+
+            await engine._save_checkpoint()
+            loaded = await engine._checkpoint_manager.load()
+
+            assert loaded is not None
+            urls = {r.url for r in loaded.requests}
+            assert urls == {"https://example.com/inflight", "https://example.com/queued"}
+
+    @pytest.mark.asyncio
+    async def test_task_wrapper_tracks_and_clears_inflight(self):
+        engine = _make_engine()
+        request = Request("https://example.com", sid="default")
+        engine._active_tasks = 1
+
+        await engine._task_wrapper(request)
+
+        assert engine._inflight == {}
+
+    @pytest.mark.asyncio
+    async def test_task_wrapper_clears_inflight_on_error(self):
+        spider = MockSpider()
+        sm = SessionManager()
+        sm.add("default", ErrorSession())
+        engine = CrawlerEngine(spider, sm)
+        engine._active_tasks = 1
+
+        await engine._task_wrapper(Request("https://example.com", sid="default"))
+
+        assert engine._inflight == {}
+
+    @pytest.mark.asyncio
+    async def test_checkpoint_failure_does_not_propagate(self):
+        """A failing checkpoint must not abort the crawl."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            engine = _make_engine(crawldir=tmpdir)
+
+            async def exploding_save(_data):
+                raise OSError("disk full")
+
+            engine._checkpoint_manager.save = exploding_save  # type: ignore[assignment]
+
+            # Must not raise
+            await engine._save_checkpoint()
+
+
+class TestConcurrencyValidation:
+    """Invalid concurrency settings must fail at construction, not mid-crawl."""
+
+    @pytest.mark.parametrize("bad", [0, -1, -5])
+    def test_negative_per_domain_rejected_at_construction(self, bad):
+        """Regression: this only raised on the first new domain, inside a spawned
+        task, taking the whole task group down mid-run."""
+        spider = MockSpider(concurrent_requests_per_domain=bad)
+
+        if bad == 0:
+            # 0 is the documented "disabled" sentinel and must stay allowed
+            engine = _make_engine(spider=spider)
+            assert engine._rate_limiter("example.com") is engine._global_limiter
+        else:
+            with pytest.raises(ValueError) as exc:
+                _make_engine(spider=spider)
+            assert "concurrent_requests_per_domain" in str(exc.value)
+
+    @pytest.mark.parametrize("bad", [0, -1])
+    def test_invalid_global_concurrency_rejected(self, bad):
+        spider = MockSpider(concurrent_requests=bad)
+
+        with pytest.raises(ValueError) as exc:
+            _make_engine(spider=spider)
+
+        assert "concurrent_requests" in str(exc.value)
+
+    def test_valid_settings_still_accepted(self):
+        spider = MockSpider(concurrent_requests=4, concurrent_requests_per_domain=2)
+        engine = _make_engine(spider=spider)
+
+        limiter = engine._rate_limiter("example.com")
+
+        assert limiter.total_tokens == 2

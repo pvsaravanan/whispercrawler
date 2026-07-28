@@ -1,6 +1,10 @@
 from whispercrawler.engines.static import (
     AsyncFetcherClient as _AsyncFetcherClient,
+)
+from whispercrawler.engines.static import (
     FetcherClient as _FetcherClient,
+)
+from whispercrawler.engines.static import (
     FetcherSession,
 )
 from whispercrawler.engines.toolbelt.custom import BaseFetcher

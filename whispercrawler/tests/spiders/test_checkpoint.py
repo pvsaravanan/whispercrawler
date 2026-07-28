@@ -1,6 +1,5 @@
 """Tests for the CheckpointManager and CheckpointData classes."""
 
-import pickle
 import tempfile
 from pathlib import Path
 
@@ -34,19 +33,6 @@ class TestCheckpointData:
         assert data.requests[0].url == "https://example.com/1"
         assert data.seen == {"url1", "url2", "url3"}
 
-    def test_pickle_roundtrip(self):
-        """Test that CheckpointData can be pickled and unpickled."""
-        requests = [Request("https://example.com", priority=5)]
-        seen = {"fingerprint1", "fingerprint2"}
-        data = CheckpointData(requests=requests, seen=seen)
-
-        pickled = pickle.dumps(data)
-        restored = pickle.loads(pickled)
-
-        assert len(restored.requests) == 1
-        assert restored.requests[0].url == "https://example.com"
-        assert restored.seen == {"fingerprint1", "fingerprint2"}
-
 
 class TestCheckpointManagerInit:
     """Test CheckpointManager initialization."""
@@ -55,7 +41,8 @@ class TestCheckpointManagerInit:
         """Test initialization with string path."""
         manager = CheckpointManager("/tmp/test_crawl")
 
-        assert str(manager.crawldir) == "/tmp/test_crawl"
+        # Compare Path objects, not strings: separators are platform-specific.
+        assert Path(manager.crawldir) == Path("/tmp/test_crawl")
         assert manager.interval == 300.0
 
     def test_init_with_pathlib_path(self):
@@ -63,7 +50,7 @@ class TestCheckpointManagerInit:
         path = Path("/tmp/test_crawl")
         manager = CheckpointManager(path)
 
-        assert str(manager.crawldir) == "/tmp/test_crawl"
+        assert Path(manager.crawldir) == Path("/tmp/test_crawl")
 
     def test_init_with_custom_interval(self):
         """Test initialization with custom interval."""
@@ -89,8 +76,7 @@ class TestCheckpointManagerInit:
         """Test that checkpoint file path is correctly constructed."""
         manager = CheckpointManager("/tmp/test_crawl")
 
-        expected_path = "/tmp/test_crawl/checkpoint.pkl"
-        assert str(manager._checkpoint_path) == expected_path
+        assert Path(manager._checkpoint_path) == Path("/tmp/test_crawl/checkpoint.json")
 
 
 class TestCheckpointManagerOperations:
@@ -124,7 +110,7 @@ class TestCheckpointManagerOperations:
 
         await manager.save(data)
 
-        checkpoint_path = crawl_dir / "checkpoint.pkl"
+        checkpoint_path = crawl_dir / "checkpoint.json"
         assert checkpoint_path.exists()
 
     @pytest.mark.asyncio
@@ -194,7 +180,7 @@ class TestCheckpointManagerOperations:
         assert not temp_path.exists()
 
         # Checkpoint file should exist
-        checkpoint_path = crawl_dir / "checkpoint.pkl"
+        checkpoint_path = crawl_dir / "checkpoint.json"
         assert checkpoint_path.exists()
 
     @pytest.mark.asyncio
@@ -207,7 +193,7 @@ class TestCheckpointManagerOperations:
         data = CheckpointData()
         await manager.save(data)
 
-        checkpoint_path = crawl_dir / "checkpoint.pkl"
+        checkpoint_path = crawl_dir / "checkpoint.json"
         assert checkpoint_path.exists()
 
         # Cleanup should remove it
@@ -229,8 +215,8 @@ class TestCheckpointManagerOperations:
         crawl_dir = temp_dir / "crawl"
         crawl_dir.mkdir(parents=True)
 
-        checkpoint_path = crawl_dir / "checkpoint.pkl"
-        checkpoint_path.write_bytes(b"not valid pickle data")
+        checkpoint_path = crawl_dir / "checkpoint.json"
+        checkpoint_path.write_bytes(b"not valid json data")
 
         manager = CheckpointManager(crawl_dir)
 
@@ -335,3 +321,71 @@ class TestCheckpointManagerEdgeCases:
         assert restored.dont_filter is True
         assert restored.meta == {"item_id": 123, "page": 5}
         assert restored._session_kwargs == {"proxy": "http://proxy:8080"}
+
+
+class Unserializable:
+    """Stand-in for an exotic request kwarg (auth object, SSL context, file handle)."""
+
+    def __repr__(self) -> str:
+        return "<Unserializable>"
+
+
+class TestEncodeValueFallback:
+    """Unknown types must degrade gracefully instead of exploding orjson."""
+
+    def test_encode_unknown_type_is_json_safe(self):
+        import orjson
+
+        from whispercrawler.spiders.checkpoint import _encode_value
+
+        encoded = _encode_value({"auth": Unserializable()})
+
+        # Must not raise
+        orjson.dumps(encoded)
+
+    def test_decode_drops_unserializable_entries(self):
+        from whispercrawler.spiders.checkpoint import _decode_value, _encode_value
+
+        decoded = _decode_value(_encode_value({"auth": Unserializable(), "timeout": 30}))
+
+        assert "auth" not in decoded
+        assert decoded["timeout"] == 30
+
+    def test_nested_unserializable_is_dropped(self):
+        from whispercrawler.spiders.checkpoint import _decode_value, _encode_value
+
+        decoded = _decode_value(_encode_value({"opts": {"ctx": Unserializable(), "keep": 1}}))
+
+        assert "ctx" not in decoded["opts"]
+        assert decoded["opts"]["keep"] == 1
+
+    def test_known_types_still_round_trip(self):
+        from io import BytesIO
+
+        from whispercrawler.spiders.checkpoint import _decode_value, _encode_value
+
+        value = {"b": b"raw", "io": BytesIO(b"stream"), "t": (1, 2), "l": [1, "x"]}
+        decoded = _decode_value(_encode_value(value))
+
+        assert decoded["b"] == b"raw"
+        assert decoded["io"].getvalue() == b"stream"
+        assert decoded["t"] == (1, 2)
+        assert decoded["l"] == [1, "x"]
+
+
+class TestCheckpointSurvivesExoticKwargs:
+    @pytest.mark.asyncio
+    async def test_save_and_load_request_with_unserializable_kwarg(self):
+        """Regression: an exotic kwarg used to abort the entire crawl."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            manager = CheckpointManager(tmpdir)
+            request = Request("https://example.com", auth=Unserializable(), timeout=30)
+
+            await manager.save(CheckpointData(requests=[request], seen=set()))
+            loaded = await manager.load()
+
+            assert loaded is not None
+            assert len(loaded.requests) == 1
+            assert loaded.requests[0].url == "https://example.com"
+            assert "auth" not in loaded.requests[0]._session_kwargs
+            assert loaded.requests[0]._session_kwargs["timeout"] == 30

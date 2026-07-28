@@ -114,13 +114,17 @@ class Response(Selector):
         session_kwargs = {**self.request._session_kwargs, **kwargs}
 
         if referer_flow:
+            # Copy before writing: the dict-spread above is shallow, so these nested
+            # dicts are still the *same objects* held by the originating request.
+            # Mutating them in place would stamp this referer onto the original
+            # request and onto every other response that shares it.
             # For requests
-            headers = session_kwargs.get("headers", {})
+            headers = dict(session_kwargs.get("headers") or {})
             headers["referer"] = self.url
             session_kwargs["headers"] = headers
 
             # For browsers
-            extra_headers = session_kwargs.get("extra_headers", {})
+            extra_headers = dict(session_kwargs.get("extra_headers") or {})
             extra_headers["referer"] = self.url
             session_kwargs["extra_headers"] = extra_headers
 

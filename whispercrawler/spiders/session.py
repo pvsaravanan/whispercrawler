@@ -2,7 +2,7 @@ from asyncio import Lock
 
 from whispercrawler.core._types import SUPPORTED_HTTP_METHODS, Set, cast
 from whispercrawler.engines.static import _ASyncSessionLogic
-from whispercrawler.engines.toolbelt.convertor import Response
+from whispercrawler.engines.toolbelt.custom import Response
 from whispercrawler.fetchers import AsyncDynamicSession, AsyncStealthySession, FetcherSession
 from whispercrawler.spiders.request import Request
 

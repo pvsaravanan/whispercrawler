@@ -191,12 +191,14 @@ class Spider(ABC):
         """Called after crawling finishes. Override for cleanup logic."""
         self.logger.debug("Spider closed")
 
-    async def on_error(self, request: Request, error: Exception) -> None:
+    async def on_error(self, request: Request, error: Exception) -> None:  # noqa: B027
         """
         Handle request errors for all spider requests.
 
         Override for custom error handling.
         """
+        # B027: deliberately concrete and empty. This is an optional hook - marking it
+        # abstract would force every spider to implement error handling it rarely needs.
         pass
 
     async def on_scraped_item(self, item: Dict[str, Any]) -> Dict[str, Any] | None:

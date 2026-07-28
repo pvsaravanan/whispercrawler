@@ -11,6 +11,8 @@ import random
 import time
 from typing import TYPE_CHECKING, Any
 
+from playwright._impl._errors import Error as PlaywrightError
+
 from whispercrawler.engines._browsers._toolbelt import build_proxy_dict
 from whispercrawler.engines.toolbelt.custom import BaseFetcher, Response
 
@@ -29,6 +31,31 @@ def _humanize_sync(page: Any) -> None:
         page.mouse.move(x, y)
         time.sleep(random.uniform(0.05, 0.15))
     time.sleep(random.uniform(0.5, 2.0))
+
+
+def _response_metadata(nav_response: Any) -> tuple[int, str, dict[str, str], dict[str, str]]:
+    """Pull the real status/reason/headers off a Playwright navigation response.
+
+    Returns ``(status, reason, headers, request_headers)``. Falls back to a neutral
+    200/OK with empty headers when there is no usable response - ``page.goto()``
+    returns ``None`` for same-document navigations, and a torn-down page can raise
+    when its attributes are read. Reporting the fallback is better than failing the
+    fetch, but it must never be the *only* thing this returns: callers branch on
+    status to detect blocks and errors.
+    """
+    if nav_response is None:
+        return 200, "OK", {}, {}
+
+    try:
+        status = int(nav_response.status)
+        reason = str(nav_response.status_text or "") or "OK"
+        headers = dict(nav_response.headers or {})
+        request = getattr(nav_response, "request", None)
+        request_headers = dict(getattr(request, "headers", None) or {}) if request else {}
+        return status, reason, headers, request_headers
+    except Exception as exc:  # pragma: no cover - defensive
+        logger.warning(f"Could not read navigation response metadata: {exc}")
+        return 200, "OK", {}, {}
 
 
 async def _humanize_async(page: Any) -> None:
@@ -89,27 +116,27 @@ class ShadowFetcher(BaseFetcher):
                     ),
                 )
 
-            page.goto(url, timeout=timeout)
+            nav_response = page.goto(url, timeout=timeout)
 
             try:
                 page.wait_for_load_state("networkidle", timeout=timeout)
-            except:
+            except PlaywrightError:
                 pass
 
             if humanize:
                 _humanize_sync(page)
 
             content = page.content()
-            status = 200  # Camoufox might need more work to get actual status
+            status, reason, headers, request_headers = _response_metadata(nav_response)
 
             return Response(
                 url=url,
                 content=content,
                 status=status,
-                reason="OK",
+                reason=reason,
                 cookies=tuple(dict(c) for c in page.context.cookies()),
-                headers={},  # TBD
-                request_headers={},  # TBD
+                headers=headers,
+                request_headers=request_headers,
                 **cls._generate_parser_arguments(),
             )
 
@@ -150,26 +177,27 @@ class ShadowFetcher(BaseFetcher):
 
                 await page.route("**/*", _block_img)
 
-            await page.goto(url, timeout=timeout)
+            nav_response = await page.goto(url, timeout=timeout)
 
             try:
                 await page.wait_for_load_state("networkidle", timeout=timeout)
-            except:
+            except PlaywrightError:
                 pass
 
             if humanize:
                 await _humanize_async(page)
 
             content = await page.content()
+            status, reason, headers, request_headers = _response_metadata(nav_response)
 
             return Response(
                 url=url,
                 content=content,
-                status=200,
-                reason="OK",
+                status=status,
+                reason=reason,
                 cookies=tuple(dict(c) for c in await page.context.cookies()),
-                headers={},
-                request_headers={},
+                headers=headers,
+                request_headers=request_headers,
                 **cls._generate_parser_arguments(),
             )
 

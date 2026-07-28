@@ -84,5 +84,5 @@ class TestDynamicFetcherAsync:
         with pytest.raises(TypeError):
             await fetcher.async_fetch(urls["html_url"], cdp_url="blahblah")
 
-        with pytest.raises(Exception):
+        with pytest.raises(Exception):  # noqa: B017 - browser backend raises its own error type
             await fetcher.async_fetch(urls["html_url"], cdp_url="ws://blahblah")

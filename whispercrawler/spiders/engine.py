@@ -41,11 +41,31 @@ class CrawlerEngine:
         )
         self.stats = CrawlStats()
 
+        # Validated here rather than where the limiters are built: the per-domain
+        # limiter is created lazily on first sight of a domain, inside a spawned
+        # task, so a bad value there would otherwise surface as a task-group crash
+        # partway through a crawl instead of a plain error at setup.
+        if not isinstance(spider.concurrent_requests, int) or spider.concurrent_requests < 1:
+            raise ValueError(
+                f"concurrent_requests must be an integer >= 1, got {spider.concurrent_requests!r}"
+            )
+        per_domain = spider.concurrent_requests_per_domain
+        # 0/None disables the per-domain limiter and falls back to the global one.
+        if per_domain and (not isinstance(per_domain, int) or per_domain < 1):
+            raise ValueError(
+                f"concurrent_requests_per_domain must be an integer >= 1 "
+                f"(or 0 to disable), got {per_domain!r}"
+            )
+
         self._global_limiter = CapacityLimiter(spider.concurrent_requests)
         self._domain_limiters: dict[str, CapacityLimiter] = {}
         self._allowed_domains: set[str] = spider.allowed_domains or set()
 
         self._active_tasks: int = 0
+        # Requests dequeued and currently being processed. They are no longer in the
+        # scheduler queue but their fingerprints are already in `seen`, so a checkpoint
+        # that ignored them would silently drop them on resume.
+        self._inflight: Dict[int, Request] = {}
         self._running: bool = False
         self._items: ItemList = ItemList()
         self._item_stream: Any = None
@@ -110,24 +130,34 @@ class CrawlerEngine:
                 await self.spider.on_error(request, e)
                 return
 
-        if await self.spider.is_blocked(response):
-            self.stats.blocked_requests_count += 1
-            if request._retry_count < self.spider.max_blocked_retries:
-                retry_request = request.copy()
-                retry_request._retry_count += 1
-                retry_request.priority -= 1  # Don't retry immediately
-                retry_request.dont_filter = True
-                retry_request._session_kwargs.pop("proxy", None)
-                retry_request._session_kwargs.pop("proxies", None)
+        # is_blocked() and retry_blocked_request() are user-overridable hooks, so a failure
+        # in either must be contained here. Letting it escape would cancel the whole task
+        # group and abort the entire crawl instead of just this request.
+        try:
+            if await self.spider.is_blocked(response):
+                self.stats.blocked_requests_count += 1
+                if request._retry_count < self.spider.max_blocked_retries:
+                    retry_request = request.copy()
+                    retry_request._retry_count += 1
+                    retry_request.priority -= 1  # Don't retry immediately
+                    retry_request.dont_filter = True
+                    retry_request._session_kwargs.pop("proxy", None)
+                    retry_request._session_kwargs.pop("proxies", None)
 
-                new_request = await self.spider.retry_blocked_request(retry_request, response)
-                self._normalize_request(new_request)
-                await self.scheduler.enqueue(new_request)
-                log.info(
-                    f"Scheduled blocked request for retry ({retry_request._retry_count}/{self.spider.max_blocked_retries}): {request.url}"
-                )
-            else:
-                log.warning(f"Max retries exceeded for blocked request: {request.url}")
+                    new_request = await self.spider.retry_blocked_request(retry_request, response)
+                    self._normalize_request(new_request)
+                    await self.scheduler.enqueue(new_request)
+                    log.info(
+                        f"Scheduled blocked request for retry ({retry_request._retry_count}/{self.spider.max_blocked_retries}): {request.url}"
+                    )
+                else:
+                    log.warning(f"Max retries exceeded for blocked request: {request.url}")
+                return
+        except Exception as e:
+            self.stats.failed_requests_count += 1
+            msg = f"Spider error handling blocked response for {request}:\n {e}"
+            log.error(msg, exc_info=e)
+            await self.spider.on_error(request, e)
             return
 
         callback = request.callback if request.callback else self.spider.parse
@@ -165,9 +195,11 @@ class CrawlerEngine:
 
     async def _task_wrapper(self, request: Request) -> None:
         """Wrapper to track active task count."""
+        self._inflight[id(request)] = request
         try:
             await self._process_request(request)
         finally:
+            self._inflight.pop(id(request), None)
             self._active_tasks -= 1
 
     def request_pause(self) -> None:
@@ -190,10 +222,22 @@ class CrawlerEngine:
             )
 
     async def _save_checkpoint(self) -> None:
-        """Save current state to checkpoint files."""
+        """Save current state to checkpoint files.
+
+        In-flight requests are folded back in ahead of the queued ones: they were
+        already dequeued (and fingerprinted as seen), so leaving them out would lose
+        them permanently if the process died before they finished.
+
+        A checkpoint is a durability aid, not part of the crawl contract - failing to
+        write one must never abort a crawl that is otherwise progressing fine.
+        """
         requests, seen = self.scheduler.snapshot()
-        data = CheckpointData(requests=requests, seen=seen)
-        await self._checkpoint_manager.save(data)
+        data = CheckpointData(requests=list(self._inflight.values()) + requests, seen=seen)
+        try:
+            await self._checkpoint_manager.save(data)
+        except Exception as e:
+            log.error(f"Failed to save checkpoint (crawl continues): {e}", exc_info=e)
+            return
         self._last_checkpoint_time = anyio.current_time()
 
     def _is_checkpoint_time(self) -> bool:
@@ -213,7 +257,7 @@ class CrawlerEngine:
         Returns True if successfully restored, False otherwise.
         """
         if not self._checkpoint_system_enabled:
-            raise
+            return False
 
         data = await self._checkpoint_manager.load()
         if data is None:

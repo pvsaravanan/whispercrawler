@@ -81,5 +81,5 @@ class TestDynamicFetcher:
         with pytest.raises(TypeError):
             fetcher.fetch(self.html_url, cdp_url="blahblah")
 
-        with pytest.raises(Exception):
+        with pytest.raises(Exception):  # noqa: B017 - browser backend raises its own error type
             fetcher.fetch(self.html_url, cdp_url="ws://blahblah")

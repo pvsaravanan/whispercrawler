@@ -28,6 +28,8 @@ classifiers = [
 dependencies = [
     "lxml>=5.2.0",
     "cssselect>=1.2.0",
+    "w3lib>=2.1.0",
+    "tld>=0.13",
     "msgspec>=0.18.0",
     "orjson>=3.10.0",
     "aiosqlite>=0.20.0",
@@ -65,7 +67,22 @@ addopts = "-v --tb=short"
 [tool.ruff]
 line-length = 100
 target-version = "py310"
+
+[tool.ruff.lint]
 select = ["E", "W", "F", "I", "B", "UP"]
+# E501: a large body of inherited long comments and docstrings sits above 100 chars.
+# `ruff format` owns code width; rewrapping prose by hand is not worth the churn.
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# Re-export surfaces: names are imported to be re-exported, not used locally.
+# `whispercrawler/__init__.py` resolves them lazily via `__getattr__`, so the
+# TYPE_CHECKING block exists purely for IDEs and type checkers.
+"**/__init__.py" = ["F401"]
+# Deliberate compatibility shim: re-exports typing primitives (Dict, List,
+# Optional, ...) under their legacy names for the rest of the package to import.
+# Modernising them here would break every downstream `from core._types import Dict`.
+"whispercrawler/core/_types.py" = ["UP006", "UP007", "UP035", "UP045"]
 
 [tool.mypy]
 python_version = "3.10"

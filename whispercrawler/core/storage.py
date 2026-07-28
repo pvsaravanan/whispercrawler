@@ -11,6 +11,28 @@ from whispercrawler.core._types import Any, Dict, Optional, cast
 from whispercrawler.core.utils import _StorageTools, log
 
 
+@lru_cache(64, typed=True)
+def _extract_base_url(url: str, default_value: str = "default") -> str:
+    """Resolve a URL to its registrable domain.
+
+    Cached at module level rather than as a method: an `lru_cache` on a method
+    keeps a strong reference to `self` for the life of the cache, which would pin
+    every storage instance (and its open SQLite connection) in memory.
+    """
+    try:
+        from tld import Result, get_tld
+
+        # Fixing the inaccurate return type hint in `get_tld`
+        extracted: Result | None = cast(
+            Result, get_tld(url, as_object=True, fail_silently=True, fix_protocol=True)
+        )
+        if not extracted:
+            return default_value
+        return extracted.fld or extracted.domain or default_value
+    except AttributeError:
+        return default_value
+
+
 class StorageSystemMixin(ABC):  # pragma: no cover
     # If you want to make your own storage system, you have to inherit from this
     def __init__(self, url: Optional[str] = None):
@@ -20,23 +42,11 @@ class StorageSystemMixin(ABC):  # pragma: no cover
         # Make the url in lowercase to handle this edge case until it's updated: https://github.com/barseghyanartur/tld/issues/124
         self.url = url.lower() if (url and isinstance(url, str)) else None
 
-    @lru_cache(64, typed=True)
     def _get_base_url(self, default_value: str = "default") -> str:
         if not self.url:
             return default_value
 
-        try:
-            from tld import Result, get_tld
-
-            # Fixing the inaccurate return type hint in `get_tld`
-            extracted: Result | None = cast(
-                Result, get_tld(self.url, as_object=True, fail_silently=True, fix_protocol=True)
-            )
-            if not extracted:
-                return default_value
-            return extracted.fld or extracted.domain or default_value
-        except AttributeError:
-            return default_value
+        return _extract_base_url(self.url, default_value)
 
     @abstractmethod
     def save(self, element: HtmlElement, identifier: str) -> None:

@@ -2,6 +2,7 @@ from difflib import SequenceMatcher
 from inspect import signature
 from pathlib import Path
 from re import Pattern as re_Pattern
+from typing import overload
 from urllib.parse import urljoin
 
 from cssselect import SelectorError, SelectorSyntaxError
@@ -33,10 +34,13 @@ from whispercrawler.core._types import (
     TypeVar,
     Union,
     cast,
-    overload,
 )
+from whispercrawler.core.analyzer import PageAnalyzer
 from whispercrawler.core.custom_types import AttributesHandler, TextHandler, TextHandlers
 from whispercrawler.core.mixins import SelectorsGeneration
+from whispercrawler.core.pagination import PaginationDetector
+from whispercrawler.core.regex import RegexGenerator
+from whispercrawler.core.schema import SchemaDetector
 from whispercrawler.core.storage import (
     SQLiteStorageSystem,
     StorageSystemMixin,
@@ -44,10 +48,6 @@ from whispercrawler.core.storage import (
 )
 from whispercrawler.core.translator import css_to_xpath as _css_to_xpath
 from whispercrawler.core.utils import clean_spaces, flatten, html_forbidden, log
-from whispercrawler.core.pagination import PaginationDetector
-from whispercrawler.core.schema import SchemaDetector
-from whispercrawler.core.analyzer import PageAnalyzer
-from whispercrawler.core.regex import RegexGenerator
 
 __DEFAULT_DB_FILE__ = str(Path(__file__).parent / "elements_storage.db")
 # Attributes that are Python reserved words and can't be used directly
@@ -446,7 +446,12 @@ class Selector(SelectorsGeneration):
 
     @property
     def path(self) -> "Selectors":
-        """Returns a list of type `Selectors` that contains the path leading to the current element from the root."""
+        """Returns the ancestors of the current element as a `Selectors` object,
+        ordered nearest first: ``[parent, grandparent, ..., root]``.
+
+        The element itself is not included. Note this is bottom-up, so ``path[0]``
+        is the immediate parent and ``path[-1]`` is the root.
+        """
         lst = list(self.iterancestors())
         return Selectors(lst)
 
@@ -578,7 +583,10 @@ class Selector(SelectorsGeneration):
                 if not selector_type:
                     return score_table[highest_probability]
                 return self.__elements_convertor(score_table[highest_probability])
-        return []
+
+        # Nothing cleared the threshold. Honour the declared return type either way:
+        # handing back a bare list here breaks callers that go straight to .getall().
+        return self.__elements_convertor([]) if selector_type else []
 
     def css(
         self,
@@ -804,7 +812,9 @@ class Selector(SelectorsGeneration):
             if results:
                 # From the results, get the ones that fulfill passed regex patterns
                 for pattern in patterns:
-                    results = results.filter(lambda e: e.text.re(pattern, check_match=True))
+                    results = results.filter(
+                        lambda e, pattern=pattern: e.text.re(pattern, check_match=True)
+                    )
 
                 # From the results, get the ones that fulfill passed functions
                 for function in functions:
@@ -812,7 +822,9 @@ class Selector(SelectorsGeneration):
         else:
             results = results or self.below_elements
             for pattern in patterns:
-                results = results.filter(lambda e: e.text.re(pattern, check_match=True))
+                results = results.filter(
+                    lambda e, pattern=pattern: e.text.re(pattern, check_match=True)
+                )
 
             # Collect an element if it fulfills the passed function otherwise
             for function in functions:
@@ -1235,6 +1247,69 @@ class Selector(SelectorsGeneration):
                 return results[0]
         return results
 
+    @property
+    def next_page(self) -> Optional[str]:
+        """Attempt to automatically detect the 'Next' page URL.
+
+        :return: Absolute URL to the next page or None if not found.
+        """
+        return PaginationDetector(self).get_next_page()
+
+    @property
+    def all_pages(self) -> List[str]:
+        """Attempt to automatically detect all pagination links on the page.
+
+        :return: A list of absolute URLs to other pages.
+        """
+        return PaginationDetector(self).get_all_pages()
+
+    def pagination(self, mode: Literal["next", "all"] = "next") -> Optional[str] | List[str]:
+        """Generic method to resolve pagination.
+
+        :param mode: 'next' to get the next page URL, 'all' to get all page links.
+        :return: Single URL string or a list of URL strings.
+        """
+        if mode == "next":
+            return self.next_page
+        return self.all_pages
+
+    @property
+    def schemas(self) -> List[Dict[str, Any]]:
+        """Extract and detect structured data (JSON-LD, Microdata) from the page.
+
+        :return: A list of dictionaries representing the detected schemas.
+        """
+        return SchemaDetector(self).get_all()
+
+    def find_schema(self, schema_type: str) -> List[Dict[str, Any]]:
+        """Search for specific schema types in the page.
+
+        Example: page.find_schema("Product") or page.find_schema("Recipe")
+
+        :param schema_type: The string to search for in schema '@type'.
+        :return: A list of matching schema dictionaries.
+        """
+        return SchemaDetector(self).find_by_type(schema_type)
+
+    @property
+    def metadata(self) -> Dict[str, Any]:
+        """Extract SEO, social (OG/Twitter), and technical metadata from the page.
+
+        :return: A dictionary containing the extracted metadata.
+        """
+        return PageAnalyzer(self).analyze().to_dict()
+
+    def analyze(self, summary: bool = False) -> str | Dict[str, Any]:
+        """Analyze the page and return a summary or a metadata dictionary.
+
+        :param summary: If True, returns a human-readable string summary.
+        :return: A string summary or metadata dictionary.
+        """
+        analyzer = PageAnalyzer(self)
+        if summary:
+            return analyzer.summary()
+        return analyzer.analyze().to_dict()
+
 
 class Selectors(List[Selector]):
     """
@@ -1260,7 +1335,7 @@ class Selectors(List[Selector]):
 
     def generate_regex(self, attribute: Optional[str] = None) -> str:
         """Generate a regular expression pattern that matches elements in this list.
-        
+
         :param attribute: If provided, generates regex for this attribute value (e.g., 'href').
                          Otherwise, generates regex for the element's text content.
         :return: A string representing the generated regular expression.
@@ -1269,7 +1344,7 @@ class Selectors(List[Selector]):
             values = [s.attrib.get(attribute) for s in self if s.attrib.get(attribute)]
         else:
             values = [str(s.get()) for s in self]
-        
+
         return RegexGenerator.generate(values)
 
     def xpath(
@@ -1423,69 +1498,6 @@ class Selectors(List[Selector]):
     def last(self) -> Optional[Selector]:
         """Returns the last Selector item of the current list or `None` if the list is empty"""
         return self[-1] if len(self) > 0 else None
-
-    @property
-    def next_page(self) -> Optional[str]:
-        """Attempt to automatically detect the 'Next' page URL.
-        
-        :return: Absolute URL to the next page or None if not found.
-        """
-        return PaginationDetector(self).get_next_page()
-
-    @property
-    def all_pages(self) -> List[str]:
-        """Attempt to automatically detect all pagination links on the page.
-        
-        :return: A list of absolute URLs to other pages.
-        """
-        return PaginationDetector(self).get_all_pages()
-
-    def pagination(self, mode: Literal["next", "all"] = "next") -> Optional[str] | List[str]:
-        """Generic method to resolve pagination.
-        
-        :param mode: 'next' to get the next page URL, 'all' to get all page links.
-        :return: Single URL string or a list of URL strings.
-        """
-        if mode == "next":
-            return self.next_page
-        return self.all_pages
-
-    @property
-    def schemas(self) -> List[Dict[str, Any]]:
-        """Extract and detect structured data (JSON-LD, Microdata) from the page.
-        
-        :return: A list of dictionaries representing the detected schemas.
-        """
-        return SchemaDetector(self).get_all()
-
-    def find_schema(self, schema_type: str) -> List[Dict[str, Any]]:
-        """Search for specific schema types in the page.
-        
-        Example: page.find_schema("Product") or page.find_schema("Recipe")
-        
-        :param schema_type: The string to search for in schema '@type'.
-        :return: A list of matching schema dictionaries.
-        """
-        return SchemaDetector(self).find_by_type(schema_type)
-
-    @property
-    def metadata(self) -> Dict[str, Any]:
-        """Extract SEO, social (OG/Twitter), and technical metadata from the page.
-        
-        :return: A dictionary containing the extracted metadata.
-        """
-        return PageAnalyzer(self).analyze().to_dict()
-
-    def analyze(self, summary: bool = False) -> str | Dict[str, Any]:
-        """Analyze the page and return a summary or a metadata dictionary.
-        
-        :param summary: If True, returns a human-readable string summary.
-        :return: A string summary or metadata dictionary.
-        """
-        analyzer = PageAnalyzer(self)
-        if summary:
-            return analyzer.summary()
-        return analyzer.analyze().to_dict()
 
     @property
     def length(self) -> int:

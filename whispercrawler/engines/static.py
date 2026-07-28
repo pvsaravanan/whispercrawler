@@ -49,8 +49,10 @@ def _select_random_browser(impersonate: ImpersonateType) -> Optional[BrowserType
     return impersonate
 
 
-class _ConfigurationLogic(ABC):
+class _ConfigurationLogic(ABC):  # noqa: B024
     # Core Logic Handler (Internal Engine)
+    # Declared abstract to mark it as an internal base that is never instantiated
+    # directly, even though every method it defines has a concrete implementation.
     __slots__ = (
         "_default_impersonate",
         "_stealth",
@@ -243,6 +245,10 @@ class _SyncSessionLogic(_ConfigurationLogic):
         )
         max_retries = self._get_param(kwargs, "retries", self._default_retries)
         retry_delay = self._get_param(kwargs, "retry_delay", self._default_retry_delay)
+        # `retries` counts total attempts, so anything below 1 would skip the request
+        # loop entirely and surface as an unrelated "No active session available."
+        if not isinstance(max_retries, int) or max_retries < 1:
+            raise ValueError(f"retries must be an integer >= 1, got {max_retries!r}")
         static_proxy = kwargs.pop("proxy", None)
 
         session = self._curl_session
@@ -466,6 +472,10 @@ class _ASyncSessionLogic(_ConfigurationLogic):
         )
         max_retries = self._get_param(kwargs, "retries", self._default_retries)
         retry_delay = self._get_param(kwargs, "retry_delay", self._default_retry_delay)
+        # `retries` counts total attempts, so anything below 1 would skip the request
+        # loop entirely and surface as an unrelated "No active session available."
+        if not isinstance(max_retries, int) or max_retries < 1:
+            raise ValueError(f"retries must be an integer >= 1, got {max_retries!r}")
         static_proxy = kwargs.pop("proxy", None)
 
         session = self._async_curl_session

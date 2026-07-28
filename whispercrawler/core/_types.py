@@ -28,6 +28,7 @@ from typing import (
     cast,
     overload,
 )
+
 from typing_extensions import Self, TypeAlias, TypedDict, Unpack
 
 # Proxy can be a string URL or a dict (Playwright format: {"server": "...", "username": "...", "password": "..."})

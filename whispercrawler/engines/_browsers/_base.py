@@ -2,6 +2,7 @@ from asyncio import Lock
 from asyncio import sleep as asyncio_sleep
 from contextlib import asynccontextmanager, contextmanager
 from time import time
+from typing import overload
 
 from playwright._impl._errors import Error as PlaywrightError
 from playwright.async_api import (
@@ -36,8 +37,8 @@ from whispercrawler.core._types import (
     Set,
     Tuple,
     cast,
-    overload,
 )
+from whispercrawler.core.utils import log
 from whispercrawler.engines._browsers._config_tools import (
     __default_chrome_useragent__,
     __default_useragent__,
@@ -72,21 +73,38 @@ class SyncSession:
     def start(self) -> None:
         pass
 
-    def close(self):  # pragma: no cover
-        """Close all resources"""
+    def close(self):
+        """Close all resources.
+
+        Each step is isolated: a crashed browser makes the first close() raise, and
+        letting that propagate would skip the remaining teardown and leak the browser
+        process and the Playwright driver for the life of the interpreter.
+        """
         if not self._is_alive:
             return
 
-        if self.context:
-            self.context.close()
+        try:
+            if self.context:
+                self.context.close()
+        except Exception as e:
+            log.warning(f"Error closing browser context: {e}")
+        finally:
             self.context = None
 
-        if self.browser:
-            self.browser.close()
+        try:
+            if self.browser:
+                self.browser.close()
+        except Exception as e:
+            log.warning(f"Error closing browser: {e}")
+        finally:
             self.browser = None
 
-        if self.playwright:
-            self.playwright.stop()
+        try:
+            if self.playwright:
+                self.playwright.stop()
+        except Exception as e:
+            log.warning(f"Error stopping Playwright: {e}")
+        finally:
             self.playwright = None  # pyright: ignore
 
         self._is_alive = False
@@ -193,6 +211,7 @@ class SyncSession:
             context_options = self._build_context_with_proxy(proxy)
             context: BrowserContext = self.browser.new_context(**context_options)
 
+            page_info: Optional[PageInfo[Page]] = None
             try:
                 context = self._initialize_context(self._config, context)
                 page_info = self._get_page(
@@ -200,6 +219,11 @@ class SyncSession:
                 )
                 yield page_info
             finally:
+                # The page is registered in the pool by _get_page(), so it has to be
+                # released here too - closing the context alone leaves a stale entry
+                # behind and the pool fills up permanently after max_pages requests.
+                if page_info is not None:
+                    self.page_pool.remove_page(page_info)
                 context.close()
         else:
             # Standard mode: use PagePool with persistent context
@@ -208,7 +232,7 @@ class SyncSession:
                 yield page_info
             finally:
                 page_info.page.close()
-                self.page_pool.pages.remove(page_info)
+                self.page_pool.remove_page(page_info)
 
 
 class AsyncSession:
@@ -232,20 +256,37 @@ class AsyncSession:
         pass
 
     async def close(self):
-        """Close all resources"""
+        """Close all resources.
+
+        Each step is isolated: a crashed browser makes the first close() raise, and
+        letting that propagate would skip the remaining teardown and leak the browser
+        process and the Playwright driver for the life of the interpreter.
+        """
         if not self._is_alive:  # pragma: no cover
             return
 
-        if self.context:
-            await self.context.close()
+        try:
+            if self.context:
+                await self.context.close()
+        except Exception as e:
+            log.warning(f"Error closing browser context: {e}")
+        finally:
             self.context = None  # pyright: ignore
 
-        if self.browser:
-            await self.browser.close()
+        try:
+            if self.browser:
+                await self.browser.close()
+        except Exception as e:
+            log.warning(f"Error closing browser: {e}")
+        finally:
             self.browser = None
 
-        if self.playwright:
-            await self.playwright.stop()
+        try:
+            if self.playwright:
+                await self.playwright.stop()
+        except Exception as e:
+            log.warning(f"Error stopping Playwright: {e}")
+        finally:
             self.playwright = None  # pyright: ignore
 
         self._is_alive = False
@@ -372,6 +413,7 @@ class AsyncSession:
             context_options = self._build_context_with_proxy(proxy)
             context: AsyncBrowserContext = await self.browser.new_context(**context_options)
 
+            page_info: Optional[PageInfo[AsyncPage]] = None
             try:
                 context = await self._initialize_context(self._config, context)
                 page_info = await self._get_page(
@@ -379,6 +421,11 @@ class AsyncSession:
                 )
                 yield page_info
             finally:
+                # The page is registered in the pool by _get_page(), so it has to be
+                # released here too - closing the context alone leaves a stale entry
+                # behind and the pool fills up permanently after max_pages requests.
+                if page_info is not None:
+                    self.page_pool.remove_page(page_info)
                 await context.close()
         else:
             # Standard mode: use PagePool with persistent context
@@ -389,7 +436,7 @@ class AsyncSession:
                 yield page_info
             finally:
                 await page_info.page.close()
-                self.page_pool.pages.remove(page_info)
+                self.page_pool.remove_page(page_info)
 
 
 class BaseSessionMixin:

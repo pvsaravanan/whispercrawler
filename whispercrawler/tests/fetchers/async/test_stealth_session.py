@@ -79,5 +79,5 @@ class TestAsyncStealthySession:
         """Test error handling during fetch"""
         async with AsyncStealthySession() as session:
             # Test with invalid URL
-            with pytest.raises(Exception):
+            with pytest.raises(Exception):  # noqa: B017 - browser backend raises its own error type
                 await session.fetch("invalid://url")

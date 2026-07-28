@@ -15,6 +15,12 @@ from .custom import Response, StatusText
 
 __CHARSET_RE__ = re_compile(r"charset=([\w-]+)")
 
+# Bounds for the page.content() navigation-race workaround below. The retry exists for a
+# transient Playwright race, so it must not outlive one: a page whose renderer has actually
+# crashed raises forever, and an unbounded loop would hang the fetch with no way out.
+__CONTENT_MAX_ATTEMPTS__ = 20
+__CONTENT_RETRY_DELAY_MS__ = 500
+
 
 class ResponseFactory:
     """
@@ -208,13 +214,18 @@ class ResponseFactory:
         :param page: The page to extract content from.
         :return:
         """
-        while True:
+        for attempt in range(__CONTENT_MAX_ATTEMPTS__):
             try:
                 return page.content() or ""
             except PlaywrightError:
-                page.wait_for_timeout(500)
-                continue
-        return ""  # pyright: ignore
+                if attempt == __CONTENT_MAX_ATTEMPTS__ - 1:
+                    log.error(
+                        f"Failed to read page content after {__CONTENT_MAX_ATTEMPTS__} attempts; "
+                        "the page or browser is likely gone"
+                    )
+                    raise
+                page.wait_for_timeout(__CONTENT_RETRY_DELAY_MS__)
+        return ""  # pragma: no cover
 
     @classmethod
     async def _get_async_page_content(cls, page: AsyncPage) -> str:
@@ -223,13 +234,18 @@ class ResponseFactory:
         :param page: The page to extract content from.
         :return:
         """
-        while True:
+        for attempt in range(__CONTENT_MAX_ATTEMPTS__):
             try:
                 return (await page.content()) or ""
             except PlaywrightError:
-                await page.wait_for_timeout(500)
-                continue
-        return ""  # pyright: ignore
+                if attempt == __CONTENT_MAX_ATTEMPTS__ - 1:
+                    log.error(
+                        f"Failed to read page content after {__CONTENT_MAX_ATTEMPTS__} attempts; "
+                        "the page or browser is likely gone"
+                    )
+                    raise
+                await page.wait_for_timeout(__CONTENT_RETRY_DELAY_MS__)
+        return ""  # pragma: no cover
 
     @classmethod
     async def from_async_playwright_response(

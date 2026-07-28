@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 from threading import RLock
+from typing import overload
 
 from playwright.async_api._generated import Page as AsyncPage
 from playwright.sync_api._generated import Page as SyncPage
 
-from whispercrawler.core._types import Generic, List, Literal, Optional, TypeVar, cast, overload
+from whispercrawler.core._types import Generic, List, Literal, Optional, TypeVar, cast
 
 PageState = Literal["ready", "busy", "error"]  # States that a page can be in
 PageType = TypeVar("PageType", SyncPage, AsyncPage)
@@ -69,6 +70,18 @@ class PagePool:
 
             self.pages.append(page_info)
             return page_info
+
+    def remove_page(self, page_info: "PageInfo[SyncPage] | PageInfo[AsyncPage]") -> None:
+        """Remove a page from the pool, if it is still present.
+
+        Safe to call more than once for the same page - a page that is already gone
+        is not an error, it just frees no additional slot.
+        """
+        with self._lock:
+            try:
+                self.pages.remove(page_info)
+            except ValueError:
+                pass
 
     @property
     def pages_count(self) -> int:

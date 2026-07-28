@@ -26,6 +26,19 @@ from whispercrawler.engines.toolbelt.proxy_rotation import is_proxy_error
 __CF_PATTERN__ = re_compile(r"^https?://challenges\.cloudflare\.com/cdn-cgi/challenge-platform/.*")
 
 
+def _captcha_click_point(outer_box: Optional[dict]) -> Optional[tuple[float, float]]:
+    """Pick randomised click coordinates inside the challenge box.
+
+    Returns None when there is no box to click. Playwright's `bounding_box()`
+    yields None for an element that is not visible, so subscripting the result
+    directly would raise `TypeError: 'NoneType' object is not subscriptable`
+    in the middle of solving.
+    """
+    if not outer_box:
+        return None
+    return (outer_box["x"] + randint(26, 28), outer_box["y"] + randint(25, 27))
+
+
 class StealthySession(SyncSession, StealthySessionMixin):
     """A Stealthy Browser session manager with page pooling."""
 
@@ -169,10 +182,11 @@ class StealthySession(SyncSession, StealthySessionMixin):
                     outer_box = page.locator(box_selector).last.bounding_box()
 
                 # Calculate the Captcha coordinates for any viewport
-                captcha_x, captcha_y = (
-                    outer_box["x"] + randint(26, 28),
-                    outer_box["y"] + randint(25, 27),
-                )
+                click_point = _captcha_click_point(outer_box)
+                if click_point is None:
+                    log.error("Could not locate the Cloudflare challenge box to click.")
+                    return None
+                captcha_x, captcha_y = click_point
 
                 # Move the mouse to the center of the window, then press and hold the left mouse button
                 page.mouse.click(captcha_x, captcha_y, delay=randint(100, 200), button="left")
@@ -206,18 +220,20 @@ class StealthySession(SyncSession, StealthySessionMixin):
 
     def _recaptcha_solver(self, page: Page, api_key: str, service: str) -> None:
         """Discover and solve ReCaptcha V2 on the page.
-        
+
         :param page: The targeted page
         :param api_key: Your API key for the solver service
         :param service: Which service to use ("2captcha" or "anticaptcha")
         """
-        site_key = page.get_attribute('div.g-recaptcha', 'data-sitekey') or \
-                  page.get_attribute('div.recaptcha', 'data-sitekey') or \
-                  page.get_attribute('.g-recaptcha', 'data-sitekey')
-        
+        site_key = (
+            page.get_attribute("div.g-recaptcha", "data-sitekey")
+            or page.get_attribute("div.recaptcha", "data-sitekey")
+            or page.get_attribute(".g-recaptcha", "data-sitekey")
+        )
+
         if not site_key:
             # Check for invisible recaptcha or other sources
-            site_key = page.evaluate('''() => {
+            site_key = page.evaluate("""() => {
                 const el = document.querySelector('.g-recaptcha');
                 if (el) return el.dataset.sitekey;
                 // Check recapture instances
@@ -230,7 +246,7 @@ class StealthySession(SyncSession, StealthySessionMixin):
                     }
                 }
                 return null;
-            }''')
+            }""")
 
         if site_key:
             log.info(f"ReCaptcha detected with site-key: {site_key}. Solving via {service}...")
@@ -238,34 +254,37 @@ class StealthySession(SyncSession, StealthySessionMixin):
             if not solver:
                 log.error("Captcha API key missing, skipping solve.")
                 return
-            
+
             try:
                 token = solver.solve_recaptcha_v2(site_key, page.url)
                 log.info("ReCaptcha solved successfully.")
-                
+
                 # Inject the solution
-                page.evaluate(f'''(token) => {{
+                page.evaluate(
+                    """(token) => {
                     const textarea = document.getElementById('g-recaptcha-response');
-                    if (textarea) {{
+                    if (textarea) {
                         textarea.value = token;
-                    }}
+                    }
                     // Try to trigger the callback if it exists
-                    if (window.___grecaptcha_cfg && window.___grecaptcha_cfg.clients) {{
-                        for (const id in window.___grecaptcha_cfg.clients) {{
+                    if (window.___grecaptcha_cfg && window.___grecaptcha_cfg.clients) {
+                        for (const id in window.___grecaptcha_cfg.clients) {
                             const client = window.___grecaptcha_cfg.clients[id];
-                            for (const key in client) {{
-                                if (client[key] && client[key].callback) {{
-                                    if (typeof client[key].callback === 'function') {{
+                            for (const key in client) {
+                                if (client[key] && client[key].callback) {
+                                    if (typeof client[key].callback === 'function') {
                                         client[key].callback(token);
-                                    }} else if (typeof client[key].callback === 'string') {{
+                                    } else if (typeof client[key].callback === 'string') {
                                         window[client[key].callback](token);
-                                    }}
-                                }}
-                            }}
-                        }}
-                    }}
-                }}''', token)
-                
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }""",
+                    token,
+                )
+
                 # Small wait to let things settle
                 page.wait_for_timeout(1000)
             except Exception as e:
@@ -529,10 +548,11 @@ class AsyncStealthySession(AsyncSession, StealthySessionMixin):
                     outer_box = await page.locator(box_selector).last.bounding_box()
 
                 # Calculate the Captcha coordinates for any viewport
-                captcha_x, captcha_y = (
-                    outer_box["x"] + randint(26, 28),
-                    outer_box["y"] + randint(25, 27),
-                )
+                click_point = _captcha_click_point(outer_box)
+                if click_point is None:
+                    log.error("Could not locate the Cloudflare challenge box to click.")
+                    return None
+                captcha_x, captcha_y = click_point
 
                 # Move the mouse to the center of the window, then press and hold the left mouse button
                 await page.mouse.click(captcha_x, captcha_y, delay=randint(100, 200), button="left")
@@ -566,17 +586,19 @@ class AsyncStealthySession(AsyncSession, StealthySessionMixin):
 
     async def _recaptcha_solver(self, page: async_Page, api_key: str, service: str) -> None:
         """Discover and solve ReCaptcha V2 on the page (Async).
-        
+
         :param page: The targeted page
         :param api_key: Your API key for the solver service
         :param service: Which service to use ("2captcha" or "anticaptcha")
         """
-        site_key = await page.get_attribute('div.g-recaptcha', 'data-sitekey') or \
-                  await page.get_attribute('div.recaptcha', 'data-sitekey') or \
-                  await page.get_attribute('.g-recaptcha', 'data-sitekey')
-        
+        site_key = (
+            await page.get_attribute("div.g-recaptcha", "data-sitekey")
+            or await page.get_attribute("div.recaptcha", "data-sitekey")
+            or await page.get_attribute(".g-recaptcha", "data-sitekey")
+        )
+
         if not site_key:
-            site_key = await page.evaluate('''() => {
+            site_key = await page.evaluate("""() => {
                 const el = document.querySelector('.g-recaptcha');
                 if (el) return el.dataset.sitekey;
                 if (window.___grecaptcha_cfg && window.___grecaptcha_cfg.clients) {
@@ -588,7 +610,7 @@ class AsyncStealthySession(AsyncSession, StealthySessionMixin):
                     }
                 }
                 return null;
-            }''')
+            }""")
 
         if site_key:
             log.info(f"ReCaptcha detected with site-key: {site_key}. Solving via {service}...")
@@ -596,34 +618,37 @@ class AsyncStealthySession(AsyncSession, StealthySessionMixin):
             if not solver:
                 log.error("Captcha API key missing, skipping solve.")
                 return
-            
+
             try:
-                # Note: solver.solve_recaptcha_v2 is currently sync, but we call it from async. 
-                # In a real production app we might want to run this in a threadpool to not block the loop.
-                token = solver.solve_recaptcha_v2(site_key, page.url)
+                # Runs the blocking poll in a worker thread so the event loop - and
+                # every other in-flight request on it - keeps running during the solve.
+                token = await solver.solve_recaptcha_v2_async(site_key, page.url)
                 log.info("ReCaptcha solved successfully.")
-                
-                await page.evaluate(f'''(token) => {{
+
+                await page.evaluate(
+                    """(token) => {
                     const textarea = document.getElementById('g-recaptcha-response');
-                    if (textarea) {{
+                    if (textarea) {
                         textarea.value = token;
-                    }}
-                    if (window.___grecaptcha_cfg && window.___grecaptcha_cfg.clients) {{
-                        for (const id in window.___grecaptcha_cfg.clients) {{
+                    }
+                    if (window.___grecaptcha_cfg && window.___grecaptcha_cfg.clients) {
+                        for (const id in window.___grecaptcha_cfg.clients) {
                             const client = window.___grecaptcha_cfg.clients[id];
-                            for (const key in client) {{
-                                if (client[key] && client[key].callback) {{
-                                    if (typeof client[key].callback === 'function') {{
+                            for (const key in client) {
+                                if (client[key] && client[key].callback) {
+                                    if (typeof client[key].callback === 'function') {
                                         client[key].callback(token);
-                                    }} else if (typeof client[key].callback === 'string') {{
+                                    } else if (typeof client[key].callback === 'string') {
                                         window[client[key].callback](token);
-                                    }}
-                                }}
-                            }}
-                        }}
-                    }}
-                }}''', token)
-                
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }""",
+                    token,
+                )
+
                 await page.wait_for_timeout(1000)
             except Exception as e:
                 log.error(f"Failed to solve ReCaptcha: {e}")
@@ -700,7 +725,9 @@ class AsyncStealthySession(AsyncSession, StealthySessionMixin):
                         )
 
                     if params.captcha_api_key:
-                        await self._recaptcha_solver(page, params.captcha_api_key, params.captcha_service)
+                        await self._recaptcha_solver(
+                            page, params.captcha_api_key, params.captcha_service
+                        )
 
                     if params.page_action:
                         try:
