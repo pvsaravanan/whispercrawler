@@ -21,7 +21,7 @@ from whispercrawler.engines._browsers._types import StealthFetchParams, StealthS
 from whispercrawler.engines._browsers._validators import StealthConfig
 from whispercrawler.engines._browsers._validators import validate_fetch as _validate
 from whispercrawler.engines.toolbelt.convertor import Response, ResponseFactory
-from whispercrawler.engines.toolbelt.proxy_rotation import is_proxy_error
+from whispercrawler.engines.toolbelt.proxy_rotation import report_proxy_failure
 
 __CF_PATTERN__ = re_compile(r"^https?://challenges\.cloudflare\.com/cdn-cgi/challenge-platform/.*")
 
@@ -390,8 +390,11 @@ class StealthySession(SyncSession, StealthySessionMixin):
 
                 except Exception as e:
                     page_info.mark_error()
+                    # Reported before the retry check: on the final attempt the branch
+                    # below re-raises, and the proxy's last failure must still count.
+                    proxy_failed = report_proxy_failure(self._config.proxy_rotator, proxy, e)
                     if attempt < self._config.retries - 1:
-                        if is_proxy_error(e):
+                        if proxy_failed:
                             log.warning(
                                 f"Proxy '{proxy}' failed (attempt {attempt + 1}) | Retrying in {self._config.retry_delay}s..."
                             )
@@ -758,8 +761,11 @@ class AsyncStealthySession(AsyncSession, StealthySessionMixin):
 
                 except Exception as e:
                     page_info.mark_error()
+                    # Reported before the retry check: on the final attempt the branch
+                    # below re-raises, and the proxy's last failure must still count.
+                    proxy_failed = report_proxy_failure(self._config.proxy_rotator, proxy, e)
                     if attempt < self._config.retries - 1:
-                        if is_proxy_error(e):
+                        if proxy_failed:
                             log.warning(
                                 f"Proxy '{proxy}' failed (attempt {attempt + 1}) | Retrying in {self._config.retry_delay}s..."
                             )

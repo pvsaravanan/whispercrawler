@@ -30,7 +30,7 @@ from ._browsers._types import DataRequestParams, GetRequestParams, ImpersonateTy
 from .toolbelt.convertor import ResponseFactory
 from .toolbelt.custom import Response
 from .toolbelt.fingerprints import __default_useragent__, generate_headers
-from .toolbelt.proxy_rotation import ProxyRotator, is_proxy_error
+from .toolbelt.proxy_rotation import ProxyRotator, report_proxy_failure
 
 _NO_SESSION: Any = object()
 
@@ -277,10 +277,13 @@ class _SyncSessionLogic(_ConfigurationLogic):
                     )
                     return result
                 except CurlError as e:  # pragma: no cover
+                    # Reported before the retry check: on the final attempt the branch
+                    # below re-raises, and the proxy's last failure must still count.
+                    proxy_failed = report_proxy_failure(self._proxy_rotator, proxy, e)
                     if attempt < max_retries - 1:
                         # Now if the rotator is enabled, we will try again with the new proxy
                         # If it's not enabled, then we will try again with the same proxy
-                        if is_proxy_error(e):
+                        if proxy_failed:
                             log.warning(
                                 f"Proxy '{proxy}' failed (attempt {attempt + 1}) | Retrying in {retry_delay} seconds..."
                             )
@@ -507,10 +510,13 @@ class _ASyncSessionLogic(_ConfigurationLogic):
                     )
                     return result
                 except CurlError as e:  # pragma: no cover
+                    # Reported before the retry check: on the final attempt the branch
+                    # below re-raises, and the proxy's last failure must still count.
+                    proxy_failed = report_proxy_failure(self._proxy_rotator, proxy, e)
                     if attempt < max_retries - 1:
                         # Now if the rotator is enabled, we will try again with the new proxy
                         # If it's not enabled, then we will try again with the same proxy
-                        if is_proxy_error(e):
+                        if proxy_failed:
                             log.warning(
                                 f"Proxy '{proxy}' failed (attempt {attempt + 1}) | Retrying in {retry_delay} seconds..."
                             )

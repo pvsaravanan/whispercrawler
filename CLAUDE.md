@@ -43,7 +43,7 @@ Note: `Response` (used in `Spider.parse` callbacks) is defined in `engines/toolb
 | `StealthyFetcher` | Camoufox-based for Cloudflare/anti-bot protected sites |
 | `ShadowFetcher` (`ShadowCrawler`) | Advanced Cloudflare bypass |
 | `Spider` | Async crawling framework with concurrency, pause/resume |
-| `ProxyWheel` | Automatic proxy rotation with quarantine for failed proxies |
+| `ProxyRotator` | Proxy rotation with pluggable strategies; quarantines failing proxies automatically |
 
 ### Fetcher Selection
 
