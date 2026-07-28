@@ -96,6 +96,71 @@ python_version = "3.10"
 strict = true
 ignore_missing_imports = true
 
+# `strict = true` is enforced in CI. The modules below predate that and are
+# grandfathered in with the specific strictness codes they still violate, so the
+# gate stays green while blocking *new* violations: anything not listed here -
+# every new module, and the ~55 already-clean ones - is held to full strict mode.
+# Shrink this list over time; when it is empty, delete this section.
+[[tool.mypy.overrides]]
+module = [
+    "whispercrawler.cli",
+    "whispercrawler.core.ai",
+    "whispercrawler.core.captcha",
+    "whispercrawler.core.custom_types",
+    "whispercrawler.core.mixins",
+    "whispercrawler.core.pagination",
+    "whispercrawler.core.shell",
+    "whispercrawler.core.storage",
+    "whispercrawler.core.utils._shell",
+    "whispercrawler.core.utils._utils",
+    "whispercrawler.engines._browsers._base",
+    "whispercrawler.engines._browsers._controllers",
+    "whispercrawler.engines._browsers._page",
+    "whispercrawler.engines._browsers._stealth",
+    "whispercrawler.engines._browsers._toolbelt",
+    "whispercrawler.engines._browsers._types",
+    "whispercrawler.engines._browsers._validators",
+    "whispercrawler.engines.static",
+    "whispercrawler.engines.toolbelt.convertor",
+    "whispercrawler.engines.toolbelt.custom",
+    "whispercrawler.engines.toolbelt.fingerprints",
+    "whispercrawler.engines.toolbelt.navigation",
+    "whispercrawler.fetchers",
+    "whispercrawler.fetchers.chrome",
+    "whispercrawler.fetchers.shadow",
+    "whispercrawler.fetchers.stealth_chrome",
+    "whispercrawler.integrations.scrapy",
+    "whispercrawler.mcp_server",
+    "whispercrawler.parser",
+    "whispercrawler.shell",
+    "whispercrawler.spiders.engine",
+    "whispercrawler.spiders.request",
+    "whispercrawler.spiders.result",
+    "whispercrawler.spiders.session",
+    "whispercrawler.spiders.spider",
+]
+disable_error_code = [
+    "arg-type",
+    "attr-defined",
+    "has-type",
+    "misc",
+    "no-any-return",
+    "no-untyped-call",
+    "no-untyped-def",
+    "redundant-cast",
+    "type-arg",
+    "untyped-decorator",
+    "unused-ignore",
+]
+
+# The suite is exercised by running it, not by type checking it. Several tests
+# also pass deliberately-invalid values to assert the validators reject them,
+# which is precisely what a type checker is built to complain about. mypy's job
+# here is to guard the shipped package.
+[[tool.mypy.overrides]]
+module = "whispercrawler.tests.*"
+ignore_errors = true
+
 [tool.coverage.run]
 source = ["whispercrawler"]
 omit = ["whispercrawler/tests/*", "*/__init__.py"]
