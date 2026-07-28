@@ -54,6 +54,9 @@ dev = [
     # Serves the local HTTP fixtures that the fetcher and CLI suites request;
     # imported at module scope, so a missing install is a collection error.
     "pytest-httpbin>=2.0.0",
+    # pytest-httpbin does not constrain httpbin, and releases before 0.10.4 import
+    # `parse_authorization_header`, which werkzeug removed in 2.3.
+    "httpbin>=0.10.4",
     "ruff>=0.4.0",
     "mypy>=1.10.0",
 ]
