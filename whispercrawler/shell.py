@@ -174,6 +174,10 @@ def launch() -> None:
         "Type help(Crawler) for full API reference.\n"
     )
 
-    IPython.start_ipython(argv=[], user_ns=namespace, display_banner=False)
-    # Print banner manually since IPython display_banner doesn't support Rich
+    # Printed manually (IPython's display_banner doesn't support Rich markup) and
+    # before start_ipython, which blocks for the whole session - writing it after
+    # would only show the banner once the user had already quit.
     sys.stdout.write(banner.replace("[bold cyan]", "").replace("[/bold cyan]", "") + "\n")
+    sys.stdout.flush()
+
+    IPython.start_ipython(argv=[], user_ns=namespace, display_banner=False)

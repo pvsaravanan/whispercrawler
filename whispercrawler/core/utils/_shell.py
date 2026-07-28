@@ -42,7 +42,7 @@ def _ParseHeaders(
                     except Exception as e:  # pragma: no cover
                         raise ValueError(
                             f"Could not parse cookie string from header '{header_value}': {e}"
-                        )
+                        ) from e
                 else:
                     header_dict[header_key] = header_value
             else:

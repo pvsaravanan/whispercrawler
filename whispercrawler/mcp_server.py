@@ -12,6 +12,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -55,7 +56,7 @@ def _extract_result(
 
     return CrawlResult(
         url=url,
-        status_code=page.status_code,
+        status_code=page.status,
         title=title,
         text=text,
         selected=selected,
@@ -83,6 +84,30 @@ async def crawl(url: str, css: str = "", xpath: str = "") -> CrawlResult:
             elapsed_ms=elapsed,
             error=str(exc),
         )
+
+
+#: Browser-backed crawls each launch their own browser instance (hundreds of MB of
+#: RAM apiece), so their bulk variants are bounded. Static HTTP is cheap and stays
+#: fully concurrent.
+DEFAULT_BROWSER_CONCURRENCY = 3
+
+
+async def _gather_bounded(
+    factory: Callable[[str], Awaitable[CrawlResult]],
+    urls: list[str],
+    max_concurrent: int,
+) -> list[CrawlResult]:
+    """Run one coroutine per URL, at most `max_concurrent` at a time.
+
+    Results keep input order regardless of completion order.
+    """
+    semaphore = asyncio.Semaphore(max(1, max_concurrent))
+
+    async def run(url: str) -> CrawlResult:
+        async with semaphore:
+            return await factory(url)
+
+    return list(await asyncio.gather(*(run(url) for url in urls)))
 
 
 async def bulk_crawl(urls: list[str], css: str = "", xpath: str = "") -> list[CrawlResult]:
@@ -114,10 +139,18 @@ async def ghost_crawl(
         )
 
 
-async def bulk_ghost_crawl(urls: list[str], css: str = "", xpath: str = "") -> list[CrawlResult]:
-    """Fetch multiple URLs concurrently using GhostCrawler."""
-    tasks = [ghost_crawl(url, css, xpath) for url in urls]
-    return list(await asyncio.gather(*tasks))
+async def bulk_ghost_crawl(
+    urls: list[str],
+    css: str = "",
+    xpath: str = "",
+    max_concurrent: int = DEFAULT_BROWSER_CONCURRENCY,
+) -> list[CrawlResult]:
+    """Fetch multiple URLs concurrently using GhostCrawler.
+
+    At most `max_concurrent` browsers run at once - an uncapped fan-out would
+    launch one Chromium per URL and exhaust memory on a large batch.
+    """
+    return await _gather_bounded(lambda url: ghost_crawl(url, css, xpath), urls, max_concurrent)
 
 
 async def shadow_crawl(
@@ -143,10 +176,115 @@ async def shadow_crawl(
         )
 
 
-async def bulk_shadow_crawl(urls: list[str], css: str = "", xpath: str = "") -> list[CrawlResult]:
-    """Fetch multiple URLs concurrently using ShadowCrawler."""
-    tasks = [shadow_crawl(url, css, xpath) for url in urls]
-    return list(await asyncio.gather(*tasks))
+async def bulk_shadow_crawl(
+    urls: list[str],
+    css: str = "",
+    xpath: str = "",
+    max_concurrent: int = DEFAULT_BROWSER_CONCURRENCY,
+) -> list[CrawlResult]:
+    """Fetch multiple URLs concurrently using ShadowCrawler.
+
+    At most `max_concurrent` browsers run at once - an uncapped fan-out would
+    launch one Camoufox per URL and exhaust memory on a large batch.
+    """
+    return await _gather_bounded(lambda url: shadow_crawl(url, css, xpath), urls, max_concurrent)
+
+
+# Tool name -> (required argument, expected type of that argument)
+_REQUIRED_ARGS: dict[str, tuple[str, type]] = {
+    "crawl": ("url", str),
+    "bulk_crawl": ("urls", list),
+    "ghost_crawl": ("url", str),
+    "bulk_ghost_crawl": ("urls", list),
+    "shadow_crawl": ("url", str),
+    "bulk_shadow_crawl": ("urls", list),
+}
+
+_MAX_TEXT_CHARS = 5000
+
+
+def _result_to_dict(result: CrawlResult) -> dict[str, Any]:
+    """Serialise a CrawlResult for transport back to the client."""
+    return {
+        "url": result.url,
+        "status_code": result.status_code,
+        "title": result.title,
+        "text": result.text[:_MAX_TEXT_CHARS],
+        "selected": result.selected,
+        "html_length": result.html_length,
+        "elapsed_ms": result.elapsed_ms,
+        "error": result.error,
+    }
+
+
+async def dispatch_tool(
+    name: str, arguments: dict[str, Any] | None
+) -> dict[str, Any] | list[dict[str, Any]]:
+    """Validate and run a single tool call, returning a JSON-serialisable payload.
+
+    Every failure mode - unknown tool, missing or ill-typed arguments, an exception
+    raised by the tool itself - is reported as an ``{"error": ...}`` payload. Nothing
+    is allowed to propagate, because an exception escaping here would surface inside
+    the stdio server loop and can take down the whole session rather than this call.
+    """
+    handlers: dict[str, Callable[[dict[str, Any]], Awaitable[CrawlResult | list[CrawlResult]]]] = {
+        "crawl": lambda args: crawl(args["url"], args.get("css", ""), args.get("xpath", "")),
+        "bulk_crawl": lambda args: bulk_crawl(
+            args["urls"], args.get("css", ""), args.get("xpath", "")
+        ),
+        "ghost_crawl": lambda args: ghost_crawl(
+            args["url"], args.get("css", ""), args.get("xpath", ""), args.get("headless", True)
+        ),
+        "bulk_ghost_crawl": lambda args: bulk_ghost_crawl(
+            args["urls"],
+            args.get("css", ""),
+            args.get("xpath", ""),
+            args.get("max_concurrent", DEFAULT_BROWSER_CONCURRENCY),
+        ),
+        "shadow_crawl": lambda args: shadow_crawl(
+            args["url"], args.get("css", ""), args.get("xpath", ""), args.get("headless", True)
+        ),
+        "bulk_shadow_crawl": lambda args: bulk_shadow_crawl(
+            args["urls"],
+            args.get("css", ""),
+            args.get("xpath", ""),
+            args.get("max_concurrent", DEFAULT_BROWSER_CONCURRENCY),
+        ),
+    }
+
+    handler = handlers.get(name)
+    if handler is None:
+        return {"error": f"Unknown tool: {name}"}
+
+    if not isinstance(arguments, dict):
+        return {
+            "error": (
+                f"Tool '{name}' expects an object of arguments, got {type(arguments).__name__}"
+            )
+        }
+
+    required, expected_type = _REQUIRED_ARGS[name]
+    if required not in arguments:
+        return {"error": f"Missing required argument '{required}' for tool '{name}'"}
+
+    value = arguments[required]
+    if not isinstance(value, expected_type):
+        return {
+            "error": (
+                f"Argument '{required}' for tool '{name}' must be "
+                f"{expected_type.__name__}, got {type(value).__name__}"
+            )
+        }
+
+    try:
+        result = await handler(arguments)
+    except Exception as exc:
+        logger.exception("Tool '%s' failed", name)
+        return {"error": f"Tool '{name}' failed: {exc}"}
+
+    if isinstance(result, list):
+        return [_result_to_dict(r) for r in result]
+    return _result_to_dict(result)
 
 
 def main() -> None:
@@ -228,6 +366,12 @@ def main() -> None:
                         "urls": {"type": "array", "items": {"type": "string"}},
                         "css": {"type": "string", "default": ""},
                         "xpath": {"type": "string", "default": ""},
+                        "max_concurrent": {
+                            "type": "integer",
+                            "description": "Maximum browsers running at once.",
+                            "default": DEFAULT_BROWSER_CONCURRENCY,
+                            "minimum": 1,
+                        },
                     },
                     "required": ["urls"],
                 },
@@ -255,6 +399,12 @@ def main() -> None:
                         "urls": {"type": "array", "items": {"type": "string"}},
                         "css": {"type": "string", "default": ""},
                         "xpath": {"type": "string", "default": ""},
+                        "max_concurrent": {
+                            "type": "integer",
+                            "description": "Maximum browsers running at once.",
+                            "default": DEFAULT_BROWSER_CONCURRENCY,
+                            "minimum": 1,
+                        },
                     },
                     "required": ["urls"],
                 },
@@ -264,56 +414,7 @@ def main() -> None:
     @server.call_tool()
     async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         """Dispatch tool calls."""
-        handlers = {
-            "crawl": lambda args: crawl(args["url"], args.get("css", ""), args.get("xpath", "")),
-            "bulk_crawl": lambda args: bulk_crawl(
-                args["urls"], args.get("css", ""), args.get("xpath", "")
-            ),
-            "ghost_crawl": lambda args: ghost_crawl(
-                args["url"], args.get("css", ""), args.get("xpath", ""), args.get("headless", True)
-            ),
-            "bulk_ghost_crawl": lambda args: bulk_ghost_crawl(
-                args["urls"], args.get("css", ""), args.get("xpath", "")
-            ),
-            "shadow_crawl": lambda args: shadow_crawl(
-                args["url"], args.get("css", ""), args.get("xpath", ""), args.get("headless", True)
-            ),
-            "bulk_shadow_crawl": lambda args: bulk_shadow_crawl(
-                args["urls"], args.get("css", ""), args.get("xpath", "")
-            ),
-        }
-
-        handler = handlers.get(name)
-        if handler is None:
-            return [TextContent(type="text", text=f"Unknown tool: {name}")]
-
-        result = await handler(arguments)
-
-        if isinstance(result, list):
-            data = [
-                {
-                    "url": r.url,
-                    "status_code": r.status_code,
-                    "title": r.title,
-                    "text": r.text[:5000],
-                    "selected": r.selected,
-                    "html_length": r.html_length,
-                    "elapsed_ms": r.elapsed_ms,
-                    "error": r.error,
-                }
-                for r in result
-            ]
-        else:
-            data = {
-                "url": result.url,
-                "status_code": result.status_code,
-                "title": result.title,
-                "text": result.text[:5000],
-                "selected": result.selected,
-                "html_length": result.html_length,
-                "elapsed_ms": result.elapsed_ms,
-                "error": result.error,
-            }
+        data = await dispatch_tool(name, arguments)
 
         return [
             TextContent(

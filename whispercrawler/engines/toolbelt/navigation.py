@@ -102,9 +102,9 @@ def construct_proxy_dict(proxy_string: str | Dict[str, str] | Tuple) -> Dict:
             if proxy.port:
                 result["server"] += f":{proxy.port}"
             return result
-        except ValueError:
+        except ValueError as e:
             # Urllib will say that one of the parameters above can't be casted to the correct type like `int` for port etc...
-            raise ValueError("The proxy argument's string is in invalid format!")
+            raise ValueError("The proxy argument's string is in invalid format!") from e
 
     elif isinstance(proxy_string, dict):
         try:
@@ -112,6 +112,6 @@ def construct_proxy_dict(proxy_string: str | Dict[str, str] | Tuple) -> Dict:
             result_dict = structs.asdict(validated)
             return result_dict
         except ValidationError as e:
-            raise TypeError(f"Invalid proxy dictionary: {e}")
+            raise TypeError(f"Invalid proxy dictionary: {e}") from e
 
     raise TypeError(f"Invalid proxy string: {proxy_string}")

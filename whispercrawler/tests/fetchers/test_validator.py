@@ -4,7 +4,15 @@ from whispercrawler.engines._browsers._validators import (
     PlaywrightConfig,
     StealthConfig,
     validate,
+    validate_fetch,
 )
+
+
+class _FakeSession:
+    """Stand-in for a browser session, which validate_fetch reads defaults from."""
+
+    def __init__(self, config):
+        self._config = config
 
 
 class TestValidators:
@@ -95,3 +103,33 @@ class TestValidators:
         config = validate(params, StealthConfig)
 
         assert config.blocked_domains == {"ads.example.com"}
+
+
+class TestValidateFetchCaptchaDefaults:
+    """Captcha settings live only on StealthConfig, but every `fetch` call builds the
+    same `_fetch_params`. The Playwright path must still get usable defaults."""
+
+    def test_playwright_fetch_defaults_captcha_fields(self):
+        """Regression: DynamicFetcher raised TypeError on every fetch."""
+        session = _FakeSession(validate({}, PlaywrightConfig))
+
+        params = validate_fetch({}, session, PlaywrightConfig)
+
+        assert params.captcha_api_key is None
+        assert params.captcha_service == "2captcha"
+
+    def test_stealth_fetch_reads_captcha_from_session_config(self):
+        params = {"captcha_api_key": "sess-key", "captcha_service": "anticaptcha"}
+        session = _FakeSession(validate(params, StealthConfig))
+
+        params = validate_fetch({}, session, StealthConfig)
+
+        assert params.captcha_api_key == "sess-key"
+        assert params.captcha_service == "anticaptcha"
+
+    def test_stealth_fetch_captcha_override_wins_over_session(self):
+        session = _FakeSession(validate({"captcha_api_key": "sess-key"}, StealthConfig))
+
+        params = validate_fetch({"captcha_api_key": "call-key"}, session, StealthConfig)
+
+        assert params.captcha_api_key == "call-key"

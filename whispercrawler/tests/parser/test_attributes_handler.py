@@ -256,7 +256,7 @@ class TestAttributesHandler:
                 if isinstance(value, str) and (value.startswith("{") or value.startswith("[")):
                     json.loads(value)
                     json_attrs.append(key)
-            except:
+            except Exception:
                 pass
 
         assert "data-config" in json_attrs
@@ -332,6 +332,6 @@ class TestAttributesHandler:
                     attrs = page.css("div")[0].attrib
                     # Should handle gracefully without crashing
                     assert isinstance(attrs, AttributesHandler)
-            except:
+            except Exception:
                 # Some malformed HTML might not parse at all
                 pass

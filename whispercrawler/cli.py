@@ -35,7 +35,7 @@ def __ParseJSONData(json_string: Optional[str] = None) -> Optional[Dict[str, Any
     try:
         return json_loads(json_string)
     except JSONDecodeError as err:  # pragma: no cover
-        raise ValueError(f"Invalid JSON data '{json_string}': {err}")
+        raise ValueError(f"Invalid JSON data '{json_string}': {err}") from err
 
 
 def __Request_and_Save(
@@ -64,11 +64,20 @@ def __ParseExtractArguments(
     """Parse arguments for extract command"""
     parsed_headers, parsed_cookies = _ParseHeaders(headers)
     if cookies:
-        for key, value in _CookieParser(cookies):
-            try:
-                parsed_cookies[key] = value
-            except Exception as err:
-                raise ValueError(f"Could not parse cookies '{cookies}': {err}")
+        # The iteration has to sit inside the `try`: `_CookieParser` is a generator,
+        # so the parse it can fail on only runs once iteration starts.
+        try:
+            parsed = dict(_CookieParser(cookies))
+        except Exception as err:
+            raise ValueError(f"Could not parse cookies '{cookies}': {err}") from err
+
+        # SimpleCookie discards the entire string when any pair is malformed, so a
+        # single typo would otherwise drop every cookie with no diagnostic at all.
+        if not parsed:
+            log.warning(
+                f"No cookies could be parsed from '{cookies}' - the request will be sent without them"
+            )
+        parsed_cookies.update(parsed)
 
     parsed_json = __ParseJSONData(json)
     parsed_params = {}
@@ -132,6 +141,14 @@ def install(force):  # pragma: no cover
                 "chromium",
             ],
             "Playwright dependencies",
+        )
+        # The stealth engines run on patchright, which pins its own Chromium build
+        # rather than reusing Playwright's. Without this, StealthyFetcher and
+        # ShadowFetcher fail with "Executable doesn't exist" despite the install
+        # above reporting success.
+        __Execute(
+            [python_executable, "-m", "patchright", "install", "chromium"],
+            "Patchright browsers",
         )
         from tld.utils import update_tld_names
 

@@ -1,7 +1,7 @@
 from dataclasses import dataclass, fields
 from functools import lru_cache
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, overload
 from urllib.parse import urlparse
 
 from msgspec import Meta, Struct, ValidationError, convert
@@ -17,7 +17,6 @@ from whispercrawler.core._types import (
     Set,
     SetCookieParam,
     Tuple,
-    overload,
 )
 from whispercrawler.engines._browsers._types import PlaywrightFetchParams, StealthFetchParams
 from whispercrawler.engines.toolbelt.navigation import construct_proxy_dict
@@ -196,6 +195,10 @@ def validate_fetch(
     # solve_cloudflare defaults to False for models that don't have it (PlaywrightConfig)
     result.setdefault("solve_cloudflare", False)
     result.setdefault("blocked_domains", None)
+    # Captcha solving is a StealthConfig-only feature, but `_fetch_params` is shared by
+    # every fetch path, so the Playwright models need defaults or construction fails.
+    result.setdefault("captcha_api_key", None)
+    result.setdefault("captcha_service", "2captcha")
 
     return _fetch_params(**result)
 
@@ -206,7 +209,9 @@ models_default_values = {}
 for _model in (StealthConfig, PlaywrightConfig):
     _defaults = {}
     if hasattr(_model, "__struct_defaults__") and hasattr(_model, "__struct_fields__"):
-        for field_name, default_value in zip(_model.__struct_fields__, _model.__struct_defaults__, strict=False):  # type: ignore
+        for field_name, default_value in zip(
+            _model.__struct_fields__, _model.__struct_defaults__, strict=False
+        ):  # type: ignore
             # Skip factory defaults - these are msgspec._core.Factory instances
             if type(default_value).__name__ != "Factory":
                 _defaults[field_name] = default_value

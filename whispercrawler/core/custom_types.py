@@ -2,6 +2,7 @@ from collections.abc import Mapping
 from re import IGNORECASE, UNICODE
 from re import compile as re_compile
 from types import MappingProxyType
+from typing import overload
 
 from orjson import dumps, loads
 from w3lib.html import replace_entities as _replace_entities
@@ -18,7 +19,6 @@ from whispercrawler.core._types import (
     TypeVar,
     Union,
     cast,
-    overload,
 )
 from whispercrawler.core.utils import __CONSECUTIVE_SPACES_REGEX__, _is_iterable, flatten
 

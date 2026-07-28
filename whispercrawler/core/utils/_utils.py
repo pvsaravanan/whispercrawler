@@ -39,8 +39,11 @@ def setup_logger():
     return logger
 
 
+# B039: the default is intentionally the shared module-level logger. Callers that
+# want isolation set their own via `set_logger`; the default is meant to be common.
 _current_logger: ContextVar[logging.Logger] = ContextVar(
-    "whispercrawler_logger", default=setup_logger()
+    "whispercrawler_logger",
+    default=setup_logger(),  # noqa: B039
 )
 
 
@@ -120,10 +123,14 @@ class _StorageTools:
 
     @classmethod
     def _get_element_path(cls, element: html.HtmlElement):
-        parent = element.getparent()
-        return tuple(
-            (element.tag,) if parent is None else (cls._get_element_path(parent) + (element.tag,))
-        )
+        # Walked iteratively rather than recursively: documents parsed with
+        # huge_tree=True can nest far deeper than Python's recursion limit.
+        path = []
+        current: html.HtmlElement | None = element
+        while current is not None:
+            path.append(current.tag)
+            current = current.getparent()
+        return tuple(reversed(path))
 
 
 @lru_cache(128, typed=True)

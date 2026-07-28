@@ -46,6 +46,21 @@ def _content_translator(
     return ResponseModel(status=page.status, content=[result for result in content], url=page.url)
 
 
+# Mirrors `PagesCount = Annotated[int, Meta(ge=1, le=50)]` in _browsers/_validators.py
+_MIN_PAGES = 1
+_MAX_PAGES = 50
+
+
+def _page_pool_size(url_count: int) -> int:
+    """Clamp a batch size to the page-pool range the browser session accepts.
+
+    A bulk tool would otherwise pass `len(urls)` straight through and raise
+    "Invalid argument type: Expected `int` <= 50" for a large batch - or `>= 1`
+    for an empty one - before fetching anything.
+    """
+    return max(_MIN_PAGES, min(url_count, _MAX_PAGES))
+
+
 def _normalize_credentials(credentials: Optional[Dict[str, str]]) -> Optional[Tuple[str, str]]:
     """Convert a credentials dictionary to a tuple accepted by fetchers."""
     if not credentials:
@@ -374,7 +389,7 @@ class WhisperCrawlerMCPServer:
             cookies=cookies,
             cdp_url=cdp_url,
             headless=headless,
-            max_pages=len(urls),
+            max_pages=_page_pool_size(len(urls)),
             useragent=useragent,
             timezone_id=timezone_id,
             real_chrome=real_chrome,

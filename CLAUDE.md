@@ -31,39 +31,7 @@ mypy whispercrawler/
 
 ### Core Modules
 
-```
-whispercrawler/
-├── parser.py           # Selector/Selectors classes - HTML parsing with CSS/XPath
-├── cli.py              # CLI entry points (shell, get, mcp, install)
-├── shell.py            # Interactive IPython shell
-├── mcp_server.py       # Model Context Protocol server for AI agents
-├── proxy.py            # ProxyWheel for proxy rotation
-├── fetchers/           # HTTP and browser-based fetchers
-│   ├── requests.py     # Static HTTP fetcher (curl_cffi)
-│   ├── chrome.py       # Playwright-based dynamic fetcher
-│   ├── stealth_chrome.py  # Anti-bot protected sites (Camoufox)
-│   └── shadow.py       # Cloudflare bypass fetcher
-├── spiders/            # Scrapy-inspired crawling framework
-│   ├── spider.py       # Base Spider class
-│   ├── engine.py       # CrawlerEngine orchestrates crawl loop
-│   ├── scheduler.py    # Priority queue with deduplication
-│   ├── session.py      # SessionManager routes requests
-│   ├── request.py      # Request objects
-│   └── response.py     # Response objects
-├── engines/            # Browser engines and toolbelt
-│   ├── _browsers/      # Browser controllers (Playwright/Camoufox)
-│   └── toolbelt/       # Utilities (proxy rotation, fingerprints)
-    ├── storage.py      # SQLite storage for adaptive parsing
-    ├── pagination.py   # Automatic 'Next' page and pagination detection
-    ├── schema.py       # JSON-LD and Microdata extraction
-    ├── analyzer.py     # SEO/Social metadata learning
-    ├── regex.py       # Programmatic regex synthesis
-    ├── mixins.py       # Selector generation mixins
-    ├── translator.py   # CSS to XPath translator
-    └── utils/          # Shell utilities, helpers
-├── integrations/
-│   └── scrapy.py       # Scrapy @whisper_response decorator
-```
+Note: `Response` (used in `Spider.parse` callbacks) is defined in `engines/toolbelt/custom.py`, not `spiders/`; it's re-exported from `whispercrawler.spiders` and `whispercrawler`.
 
 ### Key Classes
 
