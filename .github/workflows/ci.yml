@@ -95,12 +95,24 @@ jobs:
       - name: Refresh TLD names
         run: python -c "from tld.utils import update_tld_names; update_tld_names(fail_silently=True)"
 
+      # The coverage floor in pyproject only makes sense on the version that runs
+      # the whole suite. Python 3.10/3.11 skip the 80 fixture-server tests (see
+      # whispercrawler/tests/conftest.py), which lands them around 72% - a lower
+      # number for a smaller suite, not a regression. They still fail on any test
+      # failure; they just do not enforce the floor.
       - name: Run tests with coverage
         run: |
-          xvfb-run -a pytest whispercrawler/tests \
-            --cov=whispercrawler \
-            --cov-report=term-missing \
-            --cov-report=xml
+          if [ "${{ matrix.python-version }}" = "3.12" ]; then
+            xvfb-run -a pytest whispercrawler/tests \
+              --cov=whispercrawler \
+              --cov-report=term-missing \
+              --cov-report=xml
+          else
+            xvfb-run -a pytest whispercrawler/tests \
+              --cov=whispercrawler \
+              --cov-report=term-missing \
+              --cov-fail-under=0
+          fi
 
       - name: Upload coverage report
         if: matrix.python-version == '3.11'
