@@ -80,17 +80,24 @@ jobs:
 
       # The dynamic and stealth fetcher suites drive real browsers. Without these
       # binaries roughly 30 tests fail with "Executable doesn't exist".
+      # patchright pins its own Chromium build and does not reuse Playwright's,
+      # so the stealth engines need a separate install.
       - name: Install browsers
         run: |
           python -m playwright install --with-deps chromium
+          python -m patchright install chromium
           python -m camoufox fetch
+
+      # A few tests deliberately launch headed browsers, which need a display.
+      - name: Install virtual display
+        run: sudo apt-get install -y xvfb
 
       - name: Refresh TLD names
         run: python -c "from tld.utils import update_tld_names; update_tld_names(fail_silently=True)"
 
       - name: Run tests with coverage
         run: |
-          pytest whispercrawler/tests \
+          xvfb-run -a pytest whispercrawler/tests \
             --cov=whispercrawler \
             --cov-report=term-missing \
             --cov-report=xml

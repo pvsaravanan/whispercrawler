@@ -34,7 +34,12 @@ class TestGetElementPath:
 
         path = _StorageTools._get_element_path(leaf)
 
-        # html + body + `depth` divs
-        assert len(path) == depth + 2
+        # libxml2 caps nesting depth and the cap varies by build (2.11 keeps all
+        # 3000; newer builds stop at 2048), so compare against the tree actually
+        # parsed rather than the depth requested.
+        parsed_depth = len([leaf, *leaf.iterancestors()])
+        assert len(path) == parsed_depth
+        # Still far past the 255 default cap that would have hidden the original bug.
+        assert len(path) > 255
         assert path[0] == "html"
         assert path[-1] == "div"

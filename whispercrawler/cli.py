@@ -142,6 +142,14 @@ def install(force):  # pragma: no cover
             ],
             "Playwright dependencies",
         )
+        # The stealth engines run on patchright, which pins its own Chromium build
+        # rather than reusing Playwright's. Without this, StealthyFetcher and
+        # ShadowFetcher fail with "Executable doesn't exist" despite the install
+        # above reporting success.
+        __Execute(
+            [python_executable, "-m", "patchright", "install", "chromium"],
+            "Patchright browsers",
+        )
         from tld.utils import update_tld_names
 
         update_tld_names(fail_silently=True)
