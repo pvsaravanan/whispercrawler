@@ -51,12 +51,13 @@ dev = [
     "pytest>=8.2.0",
     "pytest-asyncio>=0.23.0",
     "pytest-cov>=5.0.0",
-    # Serves the local HTTP fixtures that the fetcher and CLI suites request;
-    # imported at module scope, so a missing install is a collection error.
-    "pytest-httpbin>=2.0.0",
-    # pytest-httpbin does not constrain httpbin, and releases before 0.10.4 import
-    # `parse_authorization_header`, which werkzeug removed in 2.3.
-    "httpbin>=0.10.4",
+    # Serves the local HTTP fixtures for the fetcher, CLI, and MCP suites.
+    # Restricted to 3.12+: httpbin 0.10.4 pins greenlet<3.0 below that, which
+    # collides with Playwright's greenlet>=3.1.1, and the older httpbin 0.10.0
+    # needs `parse_authorization_header`, removed in werkzeug 2.3. The affected
+    # modules are skipped where it is absent - see whispercrawler/tests/conftest.py.
+    "pytest-httpbin>=2.0.0; python_version >= '3.12'",
+    "httpbin>=0.10.4; python_version >= '3.12'",
     "ruff>=0.4.0",
     "mypy>=1.10.0",
 ]
