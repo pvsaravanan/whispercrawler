@@ -36,3 +36,21 @@ class TestSQLiteStorageSystem:
         storage = SQLiteStorageSystem(storage_file=":memory:", url="https://example.com")
         assert storage is not None
         assert storage.url == "https://example.com"
+
+    def test_close_is_idempotent(self):
+        """Closing twice must not raise.
+
+        `__del__` calls `close()` unconditionally, so any caller that closes
+        explicitly - which the `close()` docstring recommends for Scrapy's
+        `spider_closed` - would otherwise get a ProgrammingError raised from the
+        destructor when the object is later garbage collected.
+        """
+        storage = SQLiteStorageSystem(storage_file=":memory:")
+        storage.close()
+        storage.close()
+
+    def test_del_after_explicit_close_does_not_raise(self):
+        """Destruction after an explicit close must be silent."""
+        storage = SQLiteStorageSystem(storage_file=":memory:")
+        storage.close()
+        storage.__del__()
