@@ -91,14 +91,18 @@ class ProxyWheel(ProxyRotator):
         if strategy == "least_used":
             self._strategy = _least_used_strategy(self)
 
-    def next(self) -> ProxyType:
-        """Deprecated alias for :meth:`ProxyRotator.get_proxy`."""
-        return self.get_proxy()
+    def next(self) -> str:
+        """Deprecated alias for :meth:`ProxyRotator.get_proxy`.
+
+        Narrowed to `str`: this class only accepts string proxies, so widening the
+        return to `ProxyType` would break downstream callers annotated for `str`.
+        """
+        return cast(str, self.get_proxy())
 
     @property
-    def all_proxies(self) -> List[ProxyType]:
+    def all_proxies(self) -> List[str]:
         """Deprecated alias for :attr:`ProxyRotator.proxies`."""
-        return self.proxies
+        return cast(List[str], self.proxies)
 
     def __repr__(self) -> str:
         return f"ProxyWheel(proxies={len(self.proxies)})"

@@ -39,11 +39,14 @@ def report_proxy_failure(
     proxy: Optional[ProxyType],
     error: Exception,
 ) -> bool:
-    """Quarantine `proxy` if `error` looks proxy-related. Returns whether it did.
+    """Report a failed request, quarantining the proxy when one is in play.
 
-    The engines call this from their retry handlers. It subsumes the `is_proxy_error`
-    check they already performed, so the returned bool still drives which message they
-    log. Safe to call with no rotator (a static `proxy=`) or no proxy.
+    Returns whether `error` was proxy-related - **not** whether a quarantine happened.
+    The two differ when there is nothing to quarantine (a static `proxy=` with no
+    rotator, or no proxy at all), and callers rely on the classification regardless:
+    the engines use it to choose between their proxy and generic retry log messages.
+
+    Safe to call with no rotator or no proxy.
     """
     if not is_proxy_error(error):
         return False
