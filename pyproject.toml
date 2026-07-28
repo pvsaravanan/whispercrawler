@@ -51,6 +51,9 @@ dev = [
     "pytest>=8.2.0",
     "pytest-asyncio>=0.23.0",
     "pytest-cov>=5.0.0",
+    # Serves the local HTTP fixtures that the fetcher and CLI suites request;
+    # imported at module scope, so a missing install is a collection error.
+    "pytest-httpbin>=2.0.0",
     "ruff>=0.4.0",
     "mypy>=1.10.0",
 ]
