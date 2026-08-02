@@ -42,7 +42,16 @@ dependencies = [
 [project.optional-dependencies]
 fetchers = [
     "curl-cffi>=0.7.0",
-    "playwright>=1.44.0",
+    # Upper bound is for Camoufox, which drives Firefox through Playwright's Node
+    # driver. From 1.60.0 that driver reads `pageError.location.url` unguarded
+    # (coreBundle.js, BrowserContext.Events.PageError); Camoufox's Firefox 135
+    # sends a pageError with no `location`, so the driver dies and takes the fetch
+    # with it - on any page carrying an uncaught JS error, which is most of them.
+    # 1.62 breaks earlier still, on Browser.setDefaultViewport. 1.59.0 is the last
+    # verified-good release. Raise this once Camoufox ships a newer Firefox base.
+    # `patchright` is unaffected: it vendors its own driver and does not depend on
+    # `playwright`, so StealthyFetcher keeps working regardless.
+    "playwright>=1.44.0,<1.60",
     "patchright>=1.44.0",
     "camoufox[geoip]>=0.4.0",
 ]
