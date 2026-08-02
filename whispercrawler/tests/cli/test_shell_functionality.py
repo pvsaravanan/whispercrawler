@@ -153,6 +153,16 @@ class TestConvertor:
         Convertor.write_content_to_file(page, str(txt_file))
         assert txt_file.exists()
 
+    def test_write_with_unmatched_selector_aborts(self, sample_html, tmp_path):
+        """A selector that matches nothing must fail loudly instead of writing an empty file"""
+        page = Selector(sample_html)
+        out_file = tmp_path / "output.md"
+
+        with pytest.raises(ValueError, match="matched no elements"):
+            Convertor.write_content_to_file(page, str(out_file), css_selector="#does-not-exist")
+
+        assert not out_file.exists()
+
     def test_invalid_operations(self, sample_html):
         """Test error handling in convertor"""
         page = Selector(sample_html)

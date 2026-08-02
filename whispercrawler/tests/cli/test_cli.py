@@ -88,6 +88,22 @@ class TestCLI:
             )
             assert result.exit_code == 0
 
+    def test_extract_unmatched_selector_reports_error(self, runner, tmp_path, html_url):
+        """An unmatched selector must exit non-zero with a readable message, not a traceback"""
+        output_file = tmp_path / "output.md"
+
+        with patch("whispercrawler.fetchers.Fetcher.get") as mock_get:
+            mock_response = configure_selector_mock()
+            mock_response.status = 200
+            mock_response.css.return_value = []
+            mock_get.return_value = mock_response
+
+            result = runner.invoke(get, [html_url, str(output_file), "-s", "#does-not-exist"])
+
+        assert result.exit_code != 0
+        assert "matched no elements" in result.output
+        assert not output_file.exists()
+
     def test_extract_post_command(self, runner, tmp_path, html_url):
         """Test extract `post` command"""
         output_file = tmp_path / "output.html"

@@ -670,6 +670,13 @@ class Convertor:
         elif not filename.endswith((".md", ".html", ".txt")):
             raise ValueError("Unknown file type: filename must end with '.md', '.html', or '.txt'")
         else:
+            # An unmatched selector otherwise yields nothing, leaving a 0-byte file behind
+            # while the caller reports success - silent data loss in a scripted crawl.
+            if css_selector is not None and not page.css(css_selector):
+                raise ValueError(
+                    f"CSS selector '{css_selector}' matched no elements on '{page.url}'"
+                )
+
             with open(filename, "w", encoding=page.encoding) as f:
                 extension = filename.split(".")[-1]
                 f.write(
