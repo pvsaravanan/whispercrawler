@@ -75,6 +75,37 @@ dev = [
 whispercrawler = "whispercrawler.cli:main"
 whispercrawler-mcp = "whispercrawler.mcp_server:main"
 
+# Hatchling derives file lists from version control, so anything committed ships
+# unless it is excluded here. MANIFEST.in has no effect on this backend - the
+# rules below are the only ones that apply.
+
+[tool.hatch.build.targets.wheel]
+packages = ["whispercrawler"]
+# The suite is for developing WhisperCrawler, not for using it: shipping it
+# installs an importable `whispercrawler.tests` into every user's environment.
+# It stays in the sdist, where downstream packagers can still run it.
+exclude = ["whispercrawler/tests"]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+    # Working notes and agent instructions - meaningless outside this repo.
+    "AGENTS.md",
+    "CLAUDE.md",
+    "codebase_report.md",
+    "ROADMAP.md",
+    # Developer scratch scripts, not part of the library.
+    "benchmarks.py",
+    "run_demo.py",
+    "scripts",
+    # Captured crawl output kept for local reference only.
+    "sample",
+    "output.md",
+    # CI and local tooling config.
+    ".github",
+    ".pre-commit-config.yaml",
+    ".bandit.yml",
+]
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["whispercrawler/tests"]
