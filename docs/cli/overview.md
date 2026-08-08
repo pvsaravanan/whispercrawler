@@ -19,12 +19,12 @@ whispercrawler extract --help
 ```
 
 ## Requirements
-This section requires you to install the extra `shell` dependency group, like the following:
+The interactive shell and `extract --help`/`install`/etc. commands work out of the box with the base install — `click`, `rich`, and `ipython` are core dependencies, not an extra.
+
+Actually fetching pages (`whispercrawler extract get/post/...`, `whispercrawler shell` making requests) needs the `fetchers` extra and its browser binaries:
 ```bash
-pip install "whispercrawler[shell]"
-```
-and the installation of the fetchers' dependencies with the following command
-```bash
+pip install "whispercrawler[fetchers]"
+
 whispercrawler install
 ```
-This downloads all browsers, along with their system dependencies and fingerprint manipulation dependencies.
+This downloads all browsers, along with their system dependencies and fingerprint manipulation dependencies. See [Installation](../installation.md) for the full breakdown.

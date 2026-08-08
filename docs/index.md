@@ -171,11 +171,11 @@ whispercrawler requires Python 3.10 or higher:
 pip install whispercrawler
 ```
 
-This installation only includes the parser engine and its dependencies, without any fetchers or commandline dependencies.
+This installation includes the parser engine and the CLI/interactive shell (`whispercrawler shell`, `whispercrawler extract`), but no fetchers or browsers.
 
 ### Optional Dependencies
 
-1. If you are going to use any of the extra features below, the fetchers, or their classes, you will need to install fetchers' dependencies and their browser dependencies as follows:
+1. If you are going to use any of the fetchers (`Fetcher`/`GhostCrawler`/`StealthyFetcher`/`ShadowFetcher`) to fetch live websites, you will need to install their dependencies and browser binaries as follows:
     ```bash
     pip install "whispercrawler[fetchers]"
     
@@ -195,18 +195,13 @@ This installation only includes the parser engine and its dependencies, without 
 
 2. Extra features:
 
-
-     - Install the MCP server feature:
+     - Install the [MCP server](ai/mcp-server.md) feature:
        ```bash
-       pip install "whispercrawler[ai]"
+       pip install "whispercrawler[mcp]"
        ```
-     - Install shell features (Web Scraping shell and the `extract` command): 
+     - Install everything at once:
          ```bash
-         pip install "whispercrawler[shell]"
-         ```
-     - Install everything: 
-         ```bash
-         pip install "whispercrawler[all]"
+         pip install "whispercrawler[fetchers,mcp]"
          ```
      Don't forget that you need to install the browser dependencies with `whispercrawler install` after any of these extras (if you didn't already)
 
