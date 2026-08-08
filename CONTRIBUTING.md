@@ -1,6 +1,6 @@
-# Contributing to WhisperCrawler
+# Contributing to whispercrawler
 
-Thank you for your interest in contributing to WhisperCrawler. We welcome contributions from the community to help make this framework more robust, stealthy, and adaptive.
+Thank you for your interest in contributing to whispercrawler. We welcome contributions from the community to help make this framework more robust, stealthy, and adaptive.
 
 ## Development Setup
 
@@ -9,7 +9,7 @@ To set up your development environment, follow these steps:
 1.  **Clone the Repository**:
     ```bash
     git clone https://github.com/WhisperCrawl/WhisperCrawler.git
-    cd WhisperCrawler
+    cd whispercrawler
     ```
 
 2.  **Install Dependencies**:
@@ -75,10 +75,10 @@ mypy whispercrawler/
 4.  **Submit PR**: Ensure all tests and linting checks pass in your local environment before opening a PR.
 
 ## Security and Stealth
-WhisperCrawler prioritizes stealth and anti-bot bypass. When contributing to fetchers or engines:
+whispercrawler prioritizes stealth and anti-bot bypass. When contributing to fetchers or engines:
 *   Ensure that browser fingerprints remain consistent and realistic.
 *   Avoid adding code that could be easily detected by common WAFs (e.g., Cloudflare, Akamai).
 *   Test stealth features against target sites if possible.
 
 ## License
-By contributing to WhisperCrawler, you agree that your contributions will be licensed under the project's MIT License.
+By contributing to whispercrawler, you agree that your contributions will be licensed under the project's MIT License.

@@ -1,6 +1,6 @@
 # Command Line Interface
 
-Since v0.3, WhisperCrawler includes a powerful command-line interface that provides three main capabilities:
+Since v0.3, whispercrawler includes a powerful command-line interface that provides three main capabilities:
 
 1. **Interactive Shell**: An interactive Web Scraping shell based on IPython that provides many shortcuts and useful tools
 2. **Extract Commands**: Scrape websites from the terminal without any programming

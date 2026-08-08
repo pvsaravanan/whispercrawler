@@ -316,7 +316,7 @@ regex_pattern = page.css("a.product-link").generate_regex(attribute="href")
 ```
 
 ### 5. Scrapy Integration
-Use the `@whisper_response` decorator in Scrapy spiders to replace standard selectors with WhisperCrawler's adaptive engine.
+Use the `@whisper_response` decorator in Scrapy spiders to replace standard selectors with whispercrawler's adaptive engine.
 ```python
 from whispercrawler.integrations.scrapy import whisper_response
 

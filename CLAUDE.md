@@ -18,7 +18,7 @@ whispercrawler install
 
 ### Adaptive Parsing
 
-WhisperCrawler supports self-healing element selection:
+whispercrawler supports self-healing element selection:
 - `auto_save=True`: Saves element fingerprint to SQLite
 - `adaptive=True`: Recovers elements by similarity after site redesigns
 

@@ -25,7 +25,7 @@ import tomllib
 
 ROOT = Path(__file__).resolve().parent.parent
 
-# Repo files that are for developing WhisperCrawler, not for using it. Shipping
+# Repo files that are for developing whispercrawler, not for using it. Shipping
 # them bloats the sdist and leaks working notes into a public release.
 SDIST_UNWANTED = {
     "codebase_report.md",

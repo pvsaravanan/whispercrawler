@@ -1,6 +1,6 @@
 # AI Provider Integration Guide
 
-This comprehensive guide shows how to integrate WhisperCrawler with major AI providers including OpenAI, Anthropic, Google Gemini, and OpenRouter. WhisperCrawler offers multiple integration approaches: direct Python API usage, MCP Server integration, and custom wrapper implementations.
+This comprehensive guide shows how to integrate whispercrawler with major AI providers including OpenAI, Anthropic, Google Gemini, and OpenRouter. whispercrawler offers multiple integration approaches: direct Python API usage, MCP Server integration, and custom wrapper implementations.
 
 ## Table of Contents
 
@@ -15,16 +15,16 @@ This comprehensive guide shows how to integrate WhisperCrawler with major AI pro
 
 ## Integration Approaches
 
-WhisperCrawler provides three main approaches for AI integration:
+whispercrawler provides three main approaches for AI integration:
 
 ### 1. **Direct Python API Integration**
-Use WhisperCrawler as a Python library within your AI application for maximum control and customization.
+Use whispercrawler as a Python library within your AI application for maximum control and customization.
 
 ### 2. **MCP Server Integration**
-Leverage WhisperCrawler's Model Context Protocol (MCP) server for seamless integration with AI chatbots and agents.
+Leverage whispercrawler's Model Context Protocol (MCP) server for seamless integration with AI chatbots and agents.
 
 ### 3. **HTTP API Wrapper**
-Create custom HTTP endpoints that combine WhisperCrawler with your preferred AI provider.
+Create custom HTTP endpoints that combine whispercrawler with your preferred AI provider.
 
 ## OpenAI Integration
 
@@ -434,7 +434,7 @@ class WhisperCrawlerOpenRouter:
                 "Authorization": f"Bearer {self.api_key}",
                 "Content-Type": "application/json",
                 "HTTP-Referer": "https://your-app.com",  # Optional
-                "X-Title": "WhisperCrawler Integration"  # Optional
+                "X-Title": "whispercrawler Integration"  # Optional
             }
             
             data = {
@@ -527,7 +527,7 @@ asyncio.run(main())
 
 ## MCP Server Integration
 
-For seamless integration with AI chatbots and agents, use WhisperCrawler's MCP server:
+For seamless integration with AI chatbots and agents, use whispercrawler's MCP server:
 
 ### Setup for Claude Desktop
 
@@ -552,7 +552,7 @@ from mcp.client import Client
 from mcp.stdio import StdioTransport
 
 async def use_whispercrawler_mcp():
-    """Example of using WhisperCrawler MCP server programmatically"""
+    """Example of using whispercrawler MCP server programmatically"""
     
     # Start MCP client
     transport = StdioTransport(
@@ -885,10 +885,10 @@ asyncio.run(test_integration())
 
 ## Conclusion
 
-WhisperCrawler provides flexible integration options with all major AI providers. Choose the approach that best fits your use case:
+whispercrawler provides flexible integration options with all major AI providers. Choose the approach that best fits your use case:
 
 - Use **direct API integration** for maximum control and custom workflows
 - Use **MCP Server integration** for seamless chatbot integration
 - Use **HTTP wrapper patterns** for microservice architectures
 
-Remember to implement proper error handling, rate limiting, and content optimization for production deployments. The combination of WhisperCrawler's powerful scraping capabilities with AI analysis creates robust solutions for web data processing and analysis.
+Remember to implement proper error handling, rate limiting, and content optimization for production deployments. The combination of whispercrawler's powerful scraping capabilities with AI analysis creates robust solutions for web data processing and analysis.

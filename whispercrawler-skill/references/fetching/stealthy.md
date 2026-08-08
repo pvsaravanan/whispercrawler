@@ -24,7 +24,7 @@ The `StealthyFetcher` class is a stealthy version of the [DynamicFetcher](dynami
 6. and other anti-protection options...
 
 ## Full list of arguments
-WhisperCrawler provides many options with this fetcher and its session classes. Before jumping to the [examples](#examples), here's the full list of arguments
+whispercrawler provides many options with this fetcher and its session classes. Before jumping to the [examples](#examples), here's the full list of arguments
 
 
 |      Argument       | Description                                                                                                                                                                                                                         | Optional |
@@ -41,8 +41,8 @@ WhisperCrawler provides many options with this fetcher and its session classes. 
 |     page_action     | Added for automation. Pass a function that takes the `page` object and does the necessary automation.                                                                                                                               |    ✔️    |
 |    wait_selector    | Wait for a specific css selector to be in a specific state.                                                                                                                                                                         |    ✔️    |
 |     init_script     | An absolute path to a JavaScript file to be executed on page creation for all pages in this session.                                                                                                                                |    ✔️    |
-| wait_selector_state | WhisperCrawler will wait for the given state to be fulfilled for the selector given with `wait_selector`. _Default state is `attached`._                                                                                                 |    ✔️    |
-|    google_search    | Enabled by default, WhisperCrawler will set a Google referer header.                                                                                               |    ✔️    |
+| wait_selector_state | whispercrawler will wait for the given state to be fulfilled for the selector given with `wait_selector`. _Default state is `attached`._                                                                                                 |    ✔️    |
+|    google_search    | Enabled by default, whispercrawler will set a Google referer header.                                                                                               |    ✔️    |
 |    extra_headers    | A dictionary of extra headers to add to the request. _The referer set by `google_search` takes priority over the referer set here if used together._                                                                   |    ✔️    |
 |        proxy        | The proxy to be used with requests. It can be a string or a dictionary with only the keys 'server', 'username', and 'password'.                                                                                                     |    ✔️    |
 |     real_chrome     | If you have a Chrome browser installed on your device, enable this, and the Fetcher will launch and use an instance of your browser.                                                                                                |    ✔️    |
@@ -55,7 +55,7 @@ WhisperCrawler provides many options with this fetcher and its session classes. 
 |    block_webrtc     | Forces WebRTC to respect proxy settings to prevent local IP address leak.                                                                                                                                                           |    ✔️    |
 |     hide_canvas     | Add random noise to canvas operations to prevent fingerprinting.                                                                                                                                                                    |    ✔️    |
 |     allow_webgl     | Enabled by default. Disabling it disables WebGL and WebGL 2.0 support entirely. Disabling WebGL is not recommended, as many WAFs now check if WebGL is enabled.                                                                     |    ✔️    |
-|   additional_args   | Additional arguments to be passed to Playwright's context as additional settings, and they take higher priority than WhisperCrawler's settings.                                                                                          |    ✔️    |
+|   additional_args   | Additional arguments to be passed to Playwright's context as additional settings, and they take higher priority than whispercrawler's settings.                                                                                          |    ✔️    |
 |   selector_config   | A dictionary of custom parsing arguments to be used when creating the final `Selector`/`Response` class.                                                                                                                            |    ✔️    |
 |   blocked_domains   | A set of domain names to block requests to. Subdomains are also matched (e.g., `"example.com"` blocks `"sub.example.com"` too).                                                                                                     |    ✔️    |
 |    proxy_rotator    | A `ProxyRotator` instance for automatic proxy rotation. Cannot be combined with `proxy`.                                                                                                                                            |    ✔️    |
@@ -101,7 +101,7 @@ And even solves the custom pages with embedded captcha.
 
 **Important notes:**
 
-1. Sometimes, with websites that use custom implementations, you will need to use `wait_selector` to make sure WhisperCrawler waits for the real website content to be loaded after solving the captcha. Some websites can be the real definition of an edge case while we are trying to make the solver as generic as possible.
+1. Sometimes, with websites that use custom implementations, you will need to use `wait_selector` to make sure whispercrawler waits for the real website content to be loaded after solving the captcha. Some websites can be the real definition of an edge case while we are trying to make the solver as generic as possible.
 2. The timeout should be at least 60 seconds when using the Cloudflare solver for sufficient challenge-solving time.
 3. This feature works seamlessly with proxies and other stealth options.
 
@@ -155,7 +155,7 @@ The states the fetcher can wait for can be any of the following ([source](https:
 
 
 ### Real-world example (Amazon)
-This is for educational purposes only; this example was generated by AI, which also shows how easy it is to work with WhisperCrawler through AI
+This is for educational purposes only; this example was generated by AI, which also shows how easy it is to work with whispercrawler through AI
 ```python
 def scrape_amazon_product(url):
     # Use StealthyFetcher to bypass protection

@@ -295,7 +295,7 @@ class WhisperCrawlerMCPServer:
         :param wait_selector_state: The state to wait for the selector given with `wait_selector`. The default state is `attached`.
         :param real_chrome: If you have a Chrome browser installed on your device, enable this, and the Fetcher will launch an instance of your browser and use it.
         :param cdp_url: Instead of launching a new browser instance, connect to this CDP URL to control real browsers through CDP.
-        :param google_search: Enabled by default, WhisperCrawler will set a Google referer header.
+        :param google_search: Enabled by default, whispercrawler will set a Google referer header.
         :param extra_headers: A dictionary of extra headers to add to the request. _The referer set by `google_search` takes priority over the referer set here if used together._
         :param proxy: The proxy to be used with requests, it can be a string or a dictionary with the keys 'server', 'username', and 'password' only.
         """
@@ -377,7 +377,7 @@ class WhisperCrawlerMCPServer:
         :param wait_selector_state: The state to wait for the selector given with `wait_selector`. The default state is `attached`.
         :param real_chrome: If you have a Chrome browser installed on your device, enable this, and the Fetcher will launch an instance of your browser and use it.
         :param cdp_url: Instead of launching a new browser instance, connect to this CDP URL to control real browsers through CDP.
-        :param google_search: Enabled by default, WhisperCrawler will set a Google referer header.
+        :param google_search: Enabled by default, whispercrawler will set a Google referer header.
         :param extra_headers: A dictionary of extra headers to add to the request. _The referer set by `google_search` takes priority over the referer set here if used together._
         :param proxy: The proxy to be used with requests, it can be a string or a dictionary with the keys 'server', 'username', and 'password' only.
         """
@@ -473,10 +473,10 @@ class WhisperCrawlerMCPServer:
         :param hide_canvas: Add random noise to canvas operations to prevent fingerprinting.
         :param block_webrtc: Forces WebRTC to respect proxy settings to prevent local IP address leak.
         :param cdp_url: Instead of launching a new browser instance, connect to this CDP URL to control real browsers through CDP.
-        :param google_search: Enabled by default, WhisperCrawler will set a Google referer header.
+        :param google_search: Enabled by default, whispercrawler will set a Google referer header.
         :param extra_headers: A dictionary of extra headers to add to the request. _The referer set by `google_search` takes priority over the referer set here if used together._
         :param proxy: The proxy to be used with requests, it can be a string or a dictionary with the keys 'server', 'username', and 'password' only.
-        :param additional_args: Additional arguments to be passed to Playwright's context as additional settings, and it takes higher priority than WhisperCrawler's settings.
+        :param additional_args: Additional arguments to be passed to Playwright's context as additional settings, and it takes higher priority than whispercrawler's settings.
         """
         page = await StealthyFetcher.async_fetch(
             url,
@@ -570,10 +570,10 @@ class WhisperCrawlerMCPServer:
         :param hide_canvas: Add random noise to canvas operations to prevent fingerprinting.
         :param block_webrtc: Forces WebRTC to respect proxy settings to prevent local IP address leak.
         :param cdp_url: Instead of launching a new browser instance, connect to this CDP URL to control real browsers through CDP.
-        :param google_search: Enabled by default, WhisperCrawler will set a Google referer header.
+        :param google_search: Enabled by default, whispercrawler will set a Google referer header.
         :param extra_headers: A dictionary of extra headers to add to the request. _The referer set by `google_search` takes priority over the referer set here if used together._
         :param proxy: The proxy to be used with requests, it can be a string or a dictionary with the keys 'server', 'username', and 'password' only.
-        :param additional_args: Additional arguments to be passed to Playwright's context as additional settings, and it takes higher priority than WhisperCrawler's settings.
+        :param additional_args: Additional arguments to be passed to Playwright's context as additional settings, and it takes higher priority than whispercrawler's settings.
         """
         async with AsyncStealthySession(
             wait=wait,
@@ -615,7 +615,7 @@ class WhisperCrawlerMCPServer:
 
     def serve(self, http: bool, host: str, port: int):
         """Serve the MCP server."""
-        server = FastMCP(name="WhisperCrawler", host=host, port=port)
+        server = FastMCP(name="whispercrawler", host=host, port=port)
         server.add_tool(self.get, title="get", description=self.get.__doc__, structured_output=True)
         server.add_tool(
             self.bulk_get,

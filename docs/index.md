@@ -9,14 +9,14 @@
 <br/>
 <div align="center">
     <a href="https://whispercrawler.readthedocs.io/en/latest/" alt="poster">
-        <img alt="WhisperCrawler" src="assets/cover_light.svg" class="only-light">
-        <img alt="WhisperCrawler" src="assets/cover_dark.svg" class="only-dark">
+        <img alt="whispercrawler" src="assets/cover_light.svg" class="only-light">
+        <img alt="whispercrawler" src="assets/cover_dark.svg" class="only-dark">
     </a>
 </div>
 
 <h2 align="center"><i>Effortless Web Scraping for the Modern Web</i></h2><br>
 
-WhisperCrawler is an adaptive Web Scraping framework that handles everything from a single request to a full-scale crawl.
+whispercrawler is an adaptive Web Scraping framework that handles everything from a single request to a full-scale crawl.
 
 Its parser learns from website changes and automatically relocates your elements when pages update. Its fetchers bypass anti-bot systems like Cloudflare Turnstile out of the box. And its spider framework lets you scale up to concurrent, multi-session crawls with pause/resume and automatic proxy rotation — all in a few lines of Python. One library, zero compromises.
 
@@ -111,17 +111,17 @@ MySpider().start()
 - 🔄 **Smart Element Tracking**: Relocate elements after website changes using intelligent similarity algorithms.
 - 🎯 **Smart Flexible Selection**: CSS selectors, XPath selectors, filter-based search, text search, regex search, and more.
 - 🔍 **Find Similar Elements**: Automatically locate elements similar to found elements.
-- 🤖 **MCP Server to be used with AI**: Built-in MCP server for AI-assisted Web Scraping and data extraction. The MCP server features powerful, custom capabilities that leverage WhisperCrawler to extract targeted content before passing it to the AI (Claude/Cursor/etc), thereby speeding up operations and reducing costs by minimizing token usage. ([demo video](https://www.youtube.com/watch?v=qyFk3ZNwOxE))
+- 🤖 **MCP Server to be used with AI**: Built-in MCP server for AI-assisted Web Scraping and data extraction. The MCP server features powerful, custom capabilities that leverage whispercrawler to extract targeted content before passing it to the AI (Claude/Cursor/etc), thereby speeding up operations and reducing costs by minimizing token usage. ([demo video](https://www.youtube.com/watch?v=qyFk3ZNwOxE))
 
 ### High-Performance & battle-tested Architecture
 - 🚀 **Lightning Fast**: Optimized performance outperforming most Python scraping libraries.
 - 🔋 **Memory Efficient**: Optimized data structures and lazy loading for a minimal memory footprint.
 - ⚡ **Fast JSON Serialization**: 10x faster than the standard library.
-- 🏗️ **Battle tested**: Not only does WhisperCrawler have 92% test coverage and full type hints coverage, but it has been used daily by hundreds of Web Scrapers over the past year.
+- 🏗️ **Battle tested**: Not only does whispercrawler have 92% test coverage and full type hints coverage, but it has been used daily by hundreds of Web Scrapers over the past year.
 
 ### Developer/Web Scraper Friendly Experience
-- 🎯 **Interactive Web Scraping Shell**: Optional built-in IPython shell with WhisperCrawler integration, shortcuts, and new tools to speed up Web Scraping scripts development, like converting curl requests to WhisperCrawler requests and viewing requests results in your browser.
-- 🚀 **Use it directly from the Terminal**: Optionally, you can use WhisperCrawler to scrape a URL without writing a single line of code!
+- 🎯 **Interactive Web Scraping Shell**: Optional built-in IPython shell with whispercrawler integration, shortcuts, and new tools to speed up Web Scraping scripts development, like converting curl requests to whispercrawler requests and viewing requests results in your browser.
+- 🚀 **Use it directly from the Terminal**: Optionally, you can use whispercrawler to scrape a URL without writing a single line of code!
 - 🛠️ **Rich Navigation API**: Advanced DOM traversal with parent, sibling, and child navigation methods.
 - 🧬 **Enhanced Text Processing**: Built-in regex, cleaning methods, and optimized string operations.
 - 📝 **Auto Selector Generation**: Generate robust CSS/XPath selectors for any element.
@@ -131,7 +131,7 @@ MySpider().start()
 
 
 ## Star History
-WhisperCrawler’s GitHub stars have grown steadily since its release (see chart below).
+whispercrawler’s GitHub stars have grown steadily since its release (see chart below).
 
 <div id="chartContainer">
   <a href="https://github.com/WhisperCrawl/WhisperCrawler">
@@ -165,7 +165,7 @@ observer.observe(document.body, {
 
 
 ## Installation
-WhisperCrawler requires Python 3.10 or higher:
+whispercrawler requires Python 3.10 or higher:
 
 ```bash
 pip install whispercrawler
@@ -222,11 +222,11 @@ docker pull ghcr.io/whispercrawl/whispercrawler:latest
 This image is automatically built and pushed using GitHub Actions and the repository's main branch.
 
 ## How the documentation is organized
-WhisperCrawler has extensive documentation, so we try to follow the [Diátaxis documentation framework](https://diataxis.fr/).
+whispercrawler has extensive documentation, so we try to follow the [Diátaxis documentation framework](https://diataxis.fr/).
 
 ## Support
 
-If you like WhisperCrawler and want to support its development:
+If you like whispercrawler and want to support its development:
 
 - ⭐ Star the [GitHub repository](https://github.com/WhisperCrawl/WhisperCrawler)
 - 🚀 Follow us on [Twitter](https://x.com/WhisperCrawler_dev) and join the [discord server](https://discord.gg/EMgGbDceNQ)

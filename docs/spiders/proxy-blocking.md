@@ -7,7 +7,7 @@
     1. You've read the [Getting started](getting-started.md) page and know how to create and run a basic spider.
     2. You've read the [Sessions](sessions.md) page and understand how to configure sessions.
 
-When scraping at scale, you'll often need to rotate through multiple proxies to avoid rate limits and blocks. WhisperCrawler's `ProxyRotator` makes this straightforward — it works with all session types and integrates with the spider's blocked request retry system.
+When scraping at scale, you'll often need to rotate through multiple proxies to avoid rate limits and blocks. whispercrawler's `ProxyRotator` makes this straightforward — it works with all session types and integrates with the spider's blocked request retry system.
 
 If you don't know what a proxy is or how to choose a good one, [this guide can help](https://substack.thewebscraping.club/p/everything-about-proxies).
 

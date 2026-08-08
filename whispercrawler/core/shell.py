@@ -76,10 +76,10 @@ class NoExitArgumentParser(ArgumentParser):  # pragma: no cover
 
     def exit(self, status=0, message=None):
         if message:
-            log.error(f"WhisperCrawler shell exited with status {status}: {message}")
+            log.error(f"whispercrawler shell exited with status {status}: {message}")
             self._print_message(message, stderr)
         raise ValueError(
-            f"WhisperCrawler shell exited with status {status}: {message or 'Unknown reason'}"
+            f"whispercrawler shell exited with status {status}: {message or 'Unknown reason'}"
         )
 
 
@@ -294,7 +294,7 @@ class CurlParser:
             headers=headers,
             cookies=cookies,
             proxy=proxies,
-            follow_redirects=True,  # WhisperCrawler default is True
+            follow_redirects=True,  # whispercrawler default is True
         )
 
     def convert2fetcher(self, curl_command: Request | str) -> Optional[Response]:
@@ -322,7 +322,7 @@ class CurlParser:
                     log.error(f"Error calling Fetcher.{method}: {e}")
                     return None
             else:  # pragma: no cover
-                log.error(f'Request method "{method}" isn\'t supported by WhisperCrawler yet')
+                log.error(f'Request method "{method}" isn\'t supported by whispercrawler yet')
                 return None
 
         else:  # pragma: no cover
@@ -456,7 +456,7 @@ class CustomShell:
         settings = self.__Fetcher.display_config()
         settings.pop("storage", None)
         settings.pop("storage_args", None)
-        log.info(f"WhisperCrawler {__version__} shell started")
+        log.info(f"whispercrawler {__version__} shell started")
         log.info(f"Logging level is set to '{getLevelName(self.log_level)}'")
         log.info(f"Fetchers' parsing settings: {settings}")
 
@@ -464,7 +464,7 @@ class CustomShell:
     def banner():
         """Create a custom banner for the shell"""
         return f"""
--> Available WhisperCrawler objects:
+-> Available whispercrawler objects:
    - Fetcher/AsyncFetcher/FetcherSession
    - DynamicFetcher/DynamicSession/AsyncDynamicSession
    - StealthyFetcher/StealthySession/AsyncStealthySession

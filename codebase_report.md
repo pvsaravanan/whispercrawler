@@ -1,4 +1,4 @@
-# WhisperCrawler Codebase Report
+# whispercrawler Codebase Report
 
 **Generated:** 2026-04-03  
 **Version:** 0.2.0 (package), 0.4.2 (skill)  
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-WhisperCrawler is an adaptive web scraping framework built for Python 3.10+. It combines three core capabilities:
+whispercrawler is an adaptive web scraping framework built for Python 3.10+. It combines three core capabilities:
 
 1. **Stealth Fetching** - Multiple browser engines bypass anti-bot systems (Cloudflare Turnstile, etc.)
 2. **Adaptive Parsing** - Self-healing element selection that survives website redesigns

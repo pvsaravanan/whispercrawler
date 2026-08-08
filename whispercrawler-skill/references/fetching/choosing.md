@@ -7,7 +7,7 @@ Fetchers are not wrappers built on top of other libraries. They use these librar
 
 ## Fetchers Overview
 
-WhisperCrawler provides three different fetcher classes with their session classes; each fetcher is designed for a specific use case.
+whispercrawler provides three different fetcher classes with their session classes; each fetcher is designed for a specific use case.
 
 The following table compares them and can be quickly used for guidance.
 

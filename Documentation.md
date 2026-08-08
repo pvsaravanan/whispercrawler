@@ -148,7 +148,7 @@ Located in `whispercrawler/proxy.py`, the `ProxyWheel` handles thread-safe rotat
 - `shadow.py`: Utilizes Camoufox and mouse jitter algorithms to trick behavioral analytics.
 
 ### 3. `integrations/`
-- **Scrapy Integration**: Includes the `@whisper_response` decorator and `WhisperResponse` proxy, which injects WhisperCrawler's adaptive selection engine directly into standard Scrapy spiders.
+- **Scrapy Integration**: Includes the `@whisper_response` decorator and `WhisperResponse` proxy, which injects whispercrawler's adaptive selection engine directly into standard Scrapy spiders.
 - **MCP Server**: Programmatic endpoints for AI research agents.
 
 ### 4. `spiders/scheduler.py`

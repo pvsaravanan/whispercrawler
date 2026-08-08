@@ -22,7 +22,7 @@ classifiers = [
     "Framework :: AsyncIO",
 ]
 
-# WhisperCrawler configuration
+# whispercrawler configuration
 
 
 dependencies = [
@@ -81,7 +81,7 @@ whispercrawler-mcp = "whispercrawler.mcp_server:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["whispercrawler"]
-# The suite is for developing WhisperCrawler, not for using it: shipping it
+# The suite is for developing whispercrawler, not for using it: shipping it
 # installs an importable `whispercrawler.tests` into every user's environment.
 # It stays in the sdist, where downstream packagers can still run it.
 exclude = ["whispercrawler/tests"]

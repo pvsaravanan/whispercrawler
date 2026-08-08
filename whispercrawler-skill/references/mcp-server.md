@@ -1,6 +1,6 @@
-# WhisperCrawler MCP Server
+# whispercrawler MCP Server
 
-The WhisperCrawler MCP server exposes six web scraping tools over the MCP protocol. It supports CSS-selector-based content narrowing (reducing tokens by extracting only relevant elements before returning results) and three levels of scraping capability: plain HTTP, browser-rendered, and stealth (anti-bot bypass).
+The whispercrawler MCP server exposes six web scraping tools over the MCP protocol. It supports CSS-selector-based content narrowing (reducing tokens by extracting only relevant elements before returning results) and three levels of scraping capability: plain HTTP, browser-rendered, and stealth (anti-bot bypass).
 
 All tools return a `ResponseModel` with fields: `status` (int), `content` (list of strings), `url` (str).
 
@@ -83,7 +83,7 @@ Anti-bot bypass fetcher with fingerprint spoofing. Use this for sites with Cloud
 | `hide_canvas`      | bool         | false   | Add noise to canvas operations to prevent fingerprinting         |
 | `block_webrtc`     | bool         | false   | Force WebRTC to respect proxy settings (prevents IP leak)        |
 | `allow_webgl`      | bool         | true    | Keep WebGL enabled (disabling is detectable by WAFs)             |
-| `additional_args`  | dict or null | null    | Extra Playwright context args (overrides WhisperCrawler defaults)     |
+| `additional_args`  | dict or null | null    | Extra Playwright context args (overrides whispercrawler defaults)     |
 
 All parameters from `fetch` are also accepted.
 

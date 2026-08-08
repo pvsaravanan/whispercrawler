@@ -1,12 +1,12 @@
-# WhisperCrawler Examples
+# whispercrawler Examples
 
-These examples scrape [quotes.toscrape.com](https://quotes.toscrape.com) — a safe, purpose-built scraping sandbox — and demonstrate every tool available in WhisperCrawler, from plain HTTP to full browser automation and spiders.
+These examples scrape [quotes.toscrape.com](https://quotes.toscrape.com) — a safe, purpose-built scraping sandbox — and demonstrate every tool available in whispercrawler, from plain HTTP to full browser automation and spiders.
 
 All examples collect **all 100 quotes across 10 pages**.
 
 ## Quick Start
 
-Make sure WhisperCrawler is installed:
+Make sure whispercrawler is installed:
 
 ```bash
 pip install "whispercrawler[all]>=0.4.2"

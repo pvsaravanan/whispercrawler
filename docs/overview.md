@@ -251,7 +251,7 @@ You can search for a specific ancestor of an element that satisfies a function; 
 ```
 
 ## Fetching websites
-Instead of passing the raw HTML to WhisperCrawler, you can retrieve a website's response directly via HTTP requests or by fetching it in a browser.
+Instead of passing the raw HTML to whispercrawler, you can retrieve a website's response directly via HTTP requests or by fetching it in a browser.
 
 A fetcher is made for every use case.
 
@@ -341,4 +341,4 @@ Again, this is just the tip of the iceberg with this fetcher. Check out the rest
 
 ---
 
-That's WhisperCrawler at a glance. If you want to learn more, continue to the next section.
+That's whispercrawler at a glance. If you want to learn more, continue to the next section.

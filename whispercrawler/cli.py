@@ -121,7 +121,7 @@ def __BuildRequest(
     return {**request_kwargs, **kwargs}
 
 
-@command(help="Install all WhisperCrawler's Fetchers dependencies")
+@command(help="Install all whispercrawler's Fetchers dependencies")
 @option(
     "-f",
     "--force",
@@ -129,7 +129,7 @@ def __BuildRequest(
     is_flag=True,
     default=False,
     type=bool,
-    help="Force WhisperCrawler to reinstall all Fetchers dependencies",
+    help="Force whispercrawler to reinstall all Fetchers dependencies",
 )
 def install(force):  # pragma: no cover
     if force or not __PACKAGE_DIR__.joinpath(".whispercrawler_dependencies_installed").exists():
@@ -164,7 +164,7 @@ def install(force):  # pragma: no cover
         print("The dependencies are already installed")
 
 
-@command(help="Run WhisperCrawler's MCP server (Check the docs for more info).")
+@command(help="Run whispercrawler's MCP server (Check the docs for more info).")
 @option(
     "--http",
     is_flag=True,

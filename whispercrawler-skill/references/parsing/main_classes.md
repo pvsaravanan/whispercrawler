@@ -1,6 +1,6 @@
 # Parsing main classes
 
-The [Selector](#selector) class is the core parsing engine in WhisperCrawler, providing HTML parsing and element selection capabilities. You can always import it with any of the following imports
+The [Selector](#selector) class is the core parsing engine in whispercrawler, providing HTML parsing and element selection capabilities. You can always import it with any of the following imports
 ```python
 from whispercrawler import Selector
 from whispercrawler.parser import Selector
@@ -15,7 +15,7 @@ page = Selector(
 # Then select elements as you like
 elements = page.css('.product')
 ```
-In WhisperCrawler, the main object you deal with after passing an HTML source or fetching a website is, of course, a [Selector](#selector) object. Any operation you do, like selection, navigation, etc., will return either a [Selector](#selector) object or a [Selectors](#selectors) object, given that the result is element/elements from the page, not text or similar.
+In whispercrawler, the main object you deal with after passing an HTML source or fetching a website is, of course, a [Selector](#selector) object. Any operation you do, like selection, navigation, etc., will return either a [Selector](#selector) object or a [Selectors](#selectors) object, given that the result is element/elements from the page, not text or similar.
 
 The main page is a [Selector](#selector) object, and the elements within are [Selector](#selector) objects. Any text (text content inside elements or attribute values) is a [TextHandler](#texthandler) object, and element attributes are stored as [AttributesHandler](#attributeshandler).
 
@@ -33,7 +33,7 @@ Arguments for parsing adjustments:
 
 The arguments `huge_tree` and `root` are advanced features not covered here.
 
-Most properties on the main page and its elements are lazily loaded (not initialized until accessed), which contributes to WhisperCrawler's speed.
+Most properties on the main page and its elements are lazily loaded (not initialized until accessed), which contributes to whispercrawler's speed.
 
 ### Properties
 Properties for traversal are separated in the [traversal](#traversal) section below.

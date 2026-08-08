@@ -33,9 +33,9 @@
 
 ## Overview
 
-**WhisperCrawler** is an enterprise-ready Python framework designed for extreme resilience and stealth. It bridges the gap between high-performance static data extraction and hardened browser automation, all powered by a unique **adaptive selection engine** that automatically heals broken selectors after website redesigns.
+**whispercrawler** is an enterprise-ready Python framework designed for extreme resilience and stealth. It bridges the gap between high-performance static data extraction and hardened browser automation, all powered by a unique **adaptive selection engine** that automatically heals broken selectors after website redesigns.
 
-### Why WhisperCrawler?
+### Why whispercrawler?
 
 - **Unbeatable Stealth**: Native bypass for Turnstile, Cloudflare, and advanced WAFs.
 - **Self-Healing DOM**: Adaptive parsing recovers data even when CSS/XPath structures change.
@@ -69,7 +69,7 @@ whispercrawler install
 
 ## Strategic Fetching
 
-WhisperCrawler allows you to select the right tool for every site complexity:
+whispercrawler allows you to select the right tool for every site complexity:
 
 | Strategy | Engine | Best For | Speed |
 | :--- | :--- | :--- | :--- |
@@ -81,7 +81,7 @@ WhisperCrawler allows you to select the right tool for every site complexity:
 
 ## Quick Start
 
-WhisperCrawler exposes a unified API across all fetchers.
+whispercrawler exposes a unified API across all fetchers.
 
 ```python
 from whispercrawler import Crawler, GhostCrawler, ShadowCrawler
@@ -103,7 +103,7 @@ data = page.css("#secure-price", adaptive=True).get()
 
 ## Adaptive Parsing Engine
 
-WhisperCrawler's standout feature is its **Self-Healing Logic**. When traditional selectors fail due to a site update, WhisperCrawler uses stored structural fingerprints to recover elements.
+whispercrawler's standout feature is its **Self-Healing Logic**. When traditional selectors fail due to a site update, whispercrawler uses stored structural fingerprints to recover elements.
 
 ```python
 # Initial run: Save fingerprints for the future
@@ -178,7 +178,7 @@ MySpider().start()
 ```
 
 ### Scrapy Native Support
-Already using Scrapy? Inject WhisperCrawler's adaptive engine into your standard spiders.
+Already using Scrapy? Inject whispercrawler's adaptive engine into your standard spiders.
 
 ```python
 from whispercrawler.integrations.scrapy import whisper_response
@@ -186,7 +186,7 @@ from whispercrawler.integrations.scrapy import whisper_response
 class LegacySpider(scrapy.Spider):
     @whisper_response
     def parse(self, response):
-        # response is now adaptive powered by WhisperCrawler
+        # response is now adaptive powered by whispercrawler
         data = response.css(".dynamic-element", adaptive=True).get()
 ```
 
@@ -202,7 +202,7 @@ whispercrawler shell
 ```
 
 ### Model Context Protocol (MCP)
-Plug WhisperCrawler into your AI Agent (Claude, ChatGPT) for real-time web research.
+Plug whispercrawler into your AI Agent (Claude, ChatGPT) for real-time web research.
 ```bash
 # Configuration in MCP settings
 "whispercrawler": { "command": "whispercrawler-mcp" }

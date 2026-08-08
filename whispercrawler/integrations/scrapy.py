@@ -30,9 +30,9 @@ _RESPONSE_OWNED_ATTRS = frozenset(
 
 
 class WhisperResponse:
-    """A proxy wrapper for Scrapy Response that uses WhisperCrawler's Selector logic.
+    """A proxy wrapper for Scrapy Response that uses whispercrawler's Selector logic.
 
-    This replaces Scrapy's default parsel-based selection with WhisperCrawler's
+    This replaces Scrapy's default parsel-based selection with whispercrawler's
     high-performance, adaptive selection engine while maintaining compatibility
     with Scrapy's response API (follow, urljoin, status, etc).
     """
@@ -48,22 +48,22 @@ class WhisperResponse:
         # the same name, so `response.text`/`response.body` keep meaning what a
         # Scrapy callback expects them to mean.
         if name not in _RESPONSE_OWNED_ATTRS and hasattr(self._whisper_selector, name):
-            # WhisperCrawler Selector features (css, xpath, find_by_text, ...)
+            # whispercrawler Selector features (css, xpath, find_by_text, ...)
             return getattr(self._whisper_selector, name)
         # Fall back to Scrapy Response methods/attributes (status, headers, cookies, meta)
         return getattr(self._response, name)
 
     @property
     def selector(self) -> Selector:
-        """Return the WhisperCrawler Selector instance."""
+        """Return the whispercrawler Selector instance."""
         return self._whisper_selector
 
     def css(self, selector: str, adaptive: bool = False, **kwargs: Any) -> Selectors:
-        """Search using CSS3 selectors with optional WhisperCrawler adaptive mode."""
+        """Search using CSS3 selectors with optional whispercrawler adaptive mode."""
         return self._whisper_selector.css(selector, adaptive=adaptive, **kwargs)
 
     def xpath(self, selector: str, adaptive: bool = False, **kwargs: Any) -> Selectors:
-        """Search using XPath expressions with optional WhisperCrawler adaptive mode."""
+        """Search using XPath expressions with optional whispercrawler adaptive mode."""
         return self._whisper_selector.xpath(selector, adaptive=adaptive, **kwargs)
 
     def urljoin(self, url: str) -> str:
@@ -93,7 +93,7 @@ def whisper_response(func: Callable) -> Callable:
         # Or use adaptive mode to survive website redesigns:
         title = response.css("h1.title", adaptive=True)
 
-        # Use WhisperCrawler specific helpers:
+        # Use whispercrawler specific helpers:
         author = response.find_by_text("Written by", partial=True)
     """
 

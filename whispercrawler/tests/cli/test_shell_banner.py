@@ -19,7 +19,7 @@ class TestBannerOrdering:
 
         shell_module.launch()
 
-        assert "WhisperCrawler Interactive Shell" in seen_at_startup["stdout"]
+        assert "whispercrawler Interactive Shell" in seen_at_startup["stdout"]
         assert "Shortcuts:" in seen_at_startup["stdout"]
 
     def test_namespace_is_populated(self, monkeypatch):

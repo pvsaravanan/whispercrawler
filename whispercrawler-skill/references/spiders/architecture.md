@@ -1,6 +1,6 @@
 # Spiders architecture
 
-WhisperCrawler's spider system is an async crawling framework designed for concurrent, multi-session crawls with built-in pause/resume support. It brings together WhisperCrawler's parsing engine and fetchers into a unified crawling API while adding scheduling, concurrency control, and checkpointing.
+whispercrawler's spider system is an async crawling framework designed for concurrent, multi-session crawls with built-in pause/resume support. It brings together whispercrawler's parsing engine and fetchers into a unified crawling API while adding scheduling, concurrency control, and checkpointing.
 
 ## Data Flow
 
@@ -67,9 +67,9 @@ Scraped items are collected in an `ItemList` (a list subclass with `to_json()` a
 
 ## Comparison with Scrapy
 
-If you're coming from Scrapy, here's how WhisperCrawler's spider system maps:
+If you're coming from Scrapy, here's how whispercrawler's spider system maps:
 
-| Concept            | Scrapy                        | WhisperCrawler                                                       |
+| Concept            | Scrapy                        | whispercrawler                                                       |
 |--------------------|-------------------------------|-----------------------------------------------------------------|
 | Spider definition  | `scrapy.Spider` subclass      | `whispercrawler.spiders.Spider` subclass                             |
 | Initial requests   | `start_requests()`            | `async start_requests()`                                        |

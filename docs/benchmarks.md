@@ -1,12 +1,12 @@
 # Performance Benchmarks
 
-WhisperCrawler isn't just powerful—it's also blazing fast. The following benchmarks compare WhisperCrawler's parser with the latest versions of other popular libraries.
+whispercrawler isn't just powerful—it's also blazing fast. The following benchmarks compare whispercrawler's parser with the latest versions of other popular libraries.
 
 ### Text Extraction Speed Test (5000 nested elements)
 
-| # |      Library      | Time (ms) | vs WhisperCrawler | 
+| # |      Library      | Time (ms) | vs whispercrawler | 
 |---|:-----------------:|:---------:|:------------:|
-| 1 |     WhisperCrawler     |   2.02    |     1.0x     |
+| 1 |     whispercrawler     |   2.02    |     1.0x     |
 | 2 |   Parsel/Scrapy   |   2.04    |     1.01     |
 | 3 |     Raw Lxml      |   2.54    |    1.257     |
 | 4 |      PyQuery      |   24.17   |     ~12x     |
@@ -18,11 +18,11 @@ WhisperCrawler isn't just powerful—it's also blazing fast. The following bench
 
 ### Element Similarity & Text Search Performance
 
-WhisperCrawler's adaptive element finding capabilities significantly outperform alternatives:
+whispercrawler's adaptive element finding capabilities significantly outperform alternatives:
 
-| Library     | Time (ms) | vs WhisperCrawler |
+| Library     | Time (ms) | vs whispercrawler |
 |-------------|:---------:|:------------:|
-| WhisperCrawler   |   2.39    |     1.0x     |
+| whispercrawler   |   2.39    |     1.0x     |
 | AutoScraper |   12.45   |    5.209x    |
 
 > All benchmarks represent averages of 100+ runs. See [benchmarks.py](https://github.com/WhisperCrawl/WhisperCrawler/blob/main/benchmarks.py) for methodology.

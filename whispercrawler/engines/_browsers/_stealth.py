@@ -81,13 +81,13 @@ class StealthySession(SyncSession, StealthySessionMixin):
         :param allow_webgl: Enabled by default. Disabling it disables WebGL and WebGL 2.0 support entirely. Disabling WebGL is not recommended as many WAFs now check if WebGL is enabled.
         :param load_dom: Enabled by default, wait for all JavaScript on page(s) to fully load and execute.
         :param cdp_url: Instead of launching a new browser instance, connect to this CDP URL to control real browsers through CDP.
-        :param google_search: Enabled by default, WhisperCrawler will set a Google referer header.
+        :param google_search: Enabled by default, whispercrawler will set a Google referer header.
         :param extra_headers: A dictionary of extra headers to add to the request. _The referer set by `google_search` takes priority over the referer set here if used together._
         :param proxy: The proxy to be used with requests, it can be a string or a dictionary with the keys 'server', 'username', and 'password' only.
         :param user_data_dir: Path to a User Data Directory, which stores browser session data like cookies and local storage. The default is to create a temporary directory.
         :param extra_flags: A list of additional browser flags to pass to the browser on launch.
         :param selector_config: The arguments that will be passed in the end while creating the final Selector's class.
-        :param additional_args: Additional arguments to be passed to Playwright's context as additional settings, and it takes higher priority than WhisperCrawler's settings.
+        :param additional_args: Additional arguments to be passed to Playwright's context as additional settings, and it takes higher priority than whispercrawler's settings.
         """
         self.__validate__(**kwargs)
         super().__init__()
@@ -296,7 +296,7 @@ class StealthySession(SyncSession, StealthySessionMixin):
         """Opens up the browser and do your request based on your chosen options.
 
         :param url: The Target url.
-        :param google_search: Enabled by default, WhisperCrawler will set a Google referer header.
+        :param google_search: Enabled by default, whispercrawler will set a Google referer header.
         :param timeout: The timeout in milliseconds that is used in all operations and waits through the page. The default is 30,000
         :param wait: The time (milliseconds) the fetcher will wait after everything finishes before closing the page and returning the ` Response ` object.
         :param page_action: Added for automation. A function that takes the `page` object and does the automation you need.
@@ -447,13 +447,13 @@ class AsyncStealthySession(AsyncSession, StealthySessionMixin):
         :param allow_webgl: Enabled by default. Disabling it disables WebGL and WebGL 2.0 support entirely. Disabling WebGL is not recommended as many WAFs now check if WebGL is enabled.
         :param load_dom: Enabled by default, wait for all JavaScript on page(s) to fully load and execute.
         :param cdp_url: Instead of launching a new browser instance, connect to this CDP URL to control real browsers through CDP.
-        :param google_search: Enabled by default, WhisperCrawler will set a Google referer header.
+        :param google_search: Enabled by default, whispercrawler will set a Google referer header.
         :param extra_headers: A dictionary of extra headers to add to the request. _The referer set by `google_search` takes priority over the referer set here if used together._
         :param proxy: The proxy to be used with requests, it can be a string or a dictionary with the keys 'server', 'username', and 'password' only.
         :param user_data_dir: Path to a User Data Directory, which stores browser session data like cookies and local storage. The default is to create a temporary directory.
         :param extra_flags: A list of additional browser flags to pass to the browser on launch.
         :param selector_config: The arguments that will be passed in the end while creating the final Selector's class.
-        :param additional_args: Additional arguments to be passed to Playwright's context as additional settings, and it takes higher priority than WhisperCrawler's settings.
+        :param additional_args: Additional arguments to be passed to Playwright's context as additional settings, and it takes higher priority than whispercrawler's settings.
         """
         self.__validate__(**kwargs)
         super().__init__(max_pages=self._config.max_pages)
@@ -662,7 +662,7 @@ class AsyncStealthySession(AsyncSession, StealthySessionMixin):
         """Opens up the browser and do your request based on your chosen options.
 
         :param url: The Target url.
-        :param google_search: Enabled by default, WhisperCrawler will set a Google referer header.
+        :param google_search: Enabled by default, whispercrawler will set a Google referer header.
         :param timeout: The timeout in milliseconds that is used in all operations and waits through the page. The default is 30,000
         :param wait: The time (milliseconds) the fetcher will wait after everything finishes before closing the page and returning the ` Response ` object.
         :param page_action: Added for automation. A function that takes the `page` object and does the automation you need.
