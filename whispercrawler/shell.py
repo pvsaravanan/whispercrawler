@@ -1,4 +1,4 @@
-# WhisperCrawler — Adaptive Web Scraping Framework
+# whispercrawler — Adaptive Web Scraping Framework
 # MIT License
 #
 # Copyright (c) 2026, Saravanan P V
@@ -6,7 +6,7 @@
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the conditions of the MIT License are met.
 
-"""Interactive WhisperCrawler shell using IPython."""
+"""Interactive whispercrawler shell using IPython."""
 
 from __future__ import annotations
 
@@ -91,7 +91,7 @@ def curl2crawler(curl_cmd: str) -> str:
 
 
 def launch() -> None:
-    """Launch IPython shell with WhisperCrawler pre-loaded."""
+    """Launch IPython shell with whispercrawler pre-loaded."""
     try:
         import IPython
     except ImportError:
@@ -166,7 +166,7 @@ def launch() -> None:
     py_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
 
     banner = (
-        f"\n[bold cyan]WhisperCrawler Interactive Shell v{__version__}[/bold cyan]\n"
+        f"\n[bold cyan]whispercrawler Interactive Shell v{__version__}[/bold cyan]\n"
         f"Python {py_version} | IPython {ip_version}\n\n"
         "Shortcuts: get(url)  post(url)  fetch(url)  ghost_fetch(url)  shadow_fetch(url)\n"
         "History:   page (last result)   pages (all results)\n"

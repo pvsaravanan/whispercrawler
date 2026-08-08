@@ -133,3 +133,29 @@ class TestValidateFetchCaptchaDefaults:
         params = validate_fetch({"captcha_api_key": "call-key"}, session, StealthConfig)
 
         assert params.captcha_api_key == "call-key"
+
+
+class TestStealthTLSVerification:
+    """`ignore_https_errors` was hardcoded on, with no way to enforce verification.
+
+    Certificate errors are common behind rotating MITM proxies, so the permissive
+    default stays; what changed is that a caller can now turn it off.
+    """
+
+    @staticmethod
+    def _context_options(**params):
+        from whispercrawler.engines._browsers._base import StealthySessionMixin
+
+        session = object.__new__(StealthySessionMixin)
+        session.__validate__(**params)
+        return session._context_options
+
+    def test_defaults_to_ignoring_https_errors(self):
+        assert self._context_options()["ignore_https_errors"] is True
+
+    def test_https_errors_can_be_enforced(self):
+        assert self._context_options(ignore_https_errors=False)["ignore_https_errors"] is False
+
+    def test_config_exposes_the_flag(self):
+        assert validate({}, StealthConfig).ignore_https_errors is True
+        assert validate({"ignore_https_errors": False}, StealthConfig).ignore_https_errors is False

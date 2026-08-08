@@ -1,11 +1,11 @@
-# Migrating from BeautifulSoup to WhisperCrawler
+# Migrating from BeautifulSoup to whispercrawler
 
-API comparison between BeautifulSoup and WhisperCrawler. WhisperCrawler is faster, provides equivalent parsing capabilities, and adds features for fetching and handling modern web pages.
+API comparison between BeautifulSoup and whispercrawler. whispercrawler is faster, provides equivalent parsing capabilities, and adds features for fetching and handling modern web pages.
 
-Some BeautifulSoup shortcuts have no direct WhisperCrawler equivalent. WhisperCrawler avoids those shortcuts to preserve performance.
+Some BeautifulSoup shortcuts have no direct whispercrawler equivalent. whispercrawler avoids those shortcuts to preserve performance.
 
 
-| Task                                                            | BeautifulSoup Code                                                                                            | WhisperCrawler Code                                                                    |
+| Task                                                            | BeautifulSoup Code                                                                                            | whispercrawler Code                                                                    |
 |-----------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
 | Parser import                                                   | `from bs4 import BeautifulSoup`                                                                               | `from whispercrawler.parser import Selector`                                           |
 | Parsing HTML from string                                        | `soup = BeautifulSoup(html, 'html.parser')`                                                                   | `page = Selector(html)`                                                           |
@@ -42,9 +42,9 @@ Some BeautifulSoup shortcuts have no direct WhisperCrawler equivalent. WhisperCr
 | Filtering a group of elements that satisfies a condition        | `group = soup.find('p', 'story').css.filter('a')`                                                             | `group = page.find_all('p', 'story').filter(lambda p: p.tag == 'a')`              |
 
 
-¹ **Note:** BS4's `find_previous`/`find_all_previous` searches all preceding elements in document order, while WhisperCrawler's `path` only returns ancestors (the parent chain). These are not exact equivalents, but ancestor search covers the most common use case.
+¹ **Note:** BS4's `find_previous`/`find_all_previous` searches all preceding elements in document order, while whispercrawler's `path` only returns ancestors (the parent chain). These are not exact equivalents, but ancestor search covers the most common use case.
 
-BeautifulSoup supports modifying/manipulating the parsed DOM. WhisperCrawler does not — it is read-only and optimized for extraction.
+BeautifulSoup supports modifying/manipulating the parsed DOM. whispercrawler does not — it is read-only and optimized for extraction.
 
 ### Full Example: Extracting Links
 
@@ -63,7 +63,7 @@ for link in links:
     print(link['href'])
 ```
 
-**With WhisperCrawler:**
+**With whispercrawler:**
 
 ```python
 from whispercrawler import Fetcher
@@ -76,11 +76,11 @@ for link in links:
     print(link)
 ```
 
-WhisperCrawler combines fetching and parsing into a single step.
+whispercrawler combines fetching and parsing into a single step.
 
 **Note:**
 
-- **Parsers**: BeautifulSoup supports multiple parser engines. WhisperCrawler always uses `lxml` for performance.
-- **Element Types**: BeautifulSoup elements are `Tag` objects; WhisperCrawler elements are `Selector` objects. Both provide similar navigation and extraction methods.
+- **Parsers**: BeautifulSoup supports multiple parser engines. whispercrawler always uses `lxml` for performance.
+- **Element Types**: BeautifulSoup elements are `Tag` objects; whispercrawler elements are `Selector` objects. Both provide similar navigation and extraction methods.
 - **Error Handling**: Both libraries return `None` when an element is not found (e.g., `soup.find()` or `page.find()`). `page.css()` returns an empty `Selectors` list when no elements match. Use `page.css('.foo').first` to safely get the first match or `None`.
-- **Text Extraction**: WhisperCrawler's `TextHandler` provides additional text processing methods such as `clean()` for removing extra whitespace, consecutive spaces, or unwanted characters.
+- **Text Extraction**: whispercrawler's `TextHandler` provides additional text processing methods such as `clean()` for removing extra whitespace, consecutive spaces, or unwanted characters.

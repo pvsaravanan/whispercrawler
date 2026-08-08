@@ -1,4 +1,4 @@
-# WhisperCrawler Extract Command Guide
+# whispercrawler Extract Command Guide
 
 **Web Scraping through the terminal without requiring any programming!**
 

@@ -1512,6 +1512,6 @@ class Selectors(List[Selector]):
 # For backward compatibility
 Adaptor = Selector
 Adaptors = Selectors
-# Aliases for WhisperCrawler compatibility
+# Aliases for whispercrawler compatibility
 Page = Selector
 PageList = Selectors

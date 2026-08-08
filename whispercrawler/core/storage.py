@@ -101,6 +101,9 @@ class SQLiteStorageSystem(StorageSystemMixin):
         # WAL (Write-Ahead Logging) allows for better concurrency.
         self.connection.execute("PRAGMA journal_mode=WAL")
         self.cursor = self.connection.cursor()
+        # Set only once the connection and cursor both exist, so a failure above
+        # leaves `__del__` with nothing to close.
+        self._closed = False
         self._setup_database()
         log.debug(
             f'Storage system loaded with arguments (storage_file="{storage_file}", url="{url}")'
@@ -157,12 +160,23 @@ class SQLiteStorageSystem(StorageSystemMixin):
             return None
 
     def close(self):
-        """Close all connections. It will be useful when with some things like scrapy Spider.closed() function/signal"""
+        """Close all connections. It will be useful when with some things like scrapy Spider.closed() function/signal
+
+        Idempotent: `__del__` also calls this, so an explicit close followed by
+        garbage collection must not raise.
+        """
         with self.lock:
+            if self._closed:
+                return
+            self._closed = True
             self.connection.commit()
             self.cursor.close()
             self.connection.close()
 
     def __del__(self):
         """To ensure all connections are closed when the object is destroyed."""
+        # `__init__` may have raised before the connection was established, in
+        # which case there is nothing to close and no `lock` to acquire.
+        if getattr(self, "_closed", True):
+            return
         self.close()

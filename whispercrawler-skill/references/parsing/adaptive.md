@@ -1,6 +1,6 @@
 # Adaptive scraping
 
-Adaptive scraping (previously known as automatch) is one of WhisperCrawler's most powerful features. It allows your scraper to survive website changes by intelligently tracking and relocating elements.
+Adaptive scraping (previously known as automatch) is one of whispercrawler's most powerful features. It allows your scraper to survive website changes by intelligently tracking and relocating elements.
 
 Consider a page with a structure like this:
 ```html
@@ -42,9 +42,9 @@ When website owners implement structural changes like
     </div>
 </div>
 ```
-The selector will no longer function, and your code needs maintenance. That's where WhisperCrawler's `adaptive` feature comes into play.
+The selector will no longer function, and your code needs maintenance. That's where whispercrawler's `adaptive` feature comes into play.
 
-With WhisperCrawler, you can enable the `adaptive` feature the first time you select an element, and the next time you select that element and it doesn't exist, WhisperCrawler will remember its properties and search on the website for the element with the highest percentage of similarity to that element.
+With whispercrawler, you can enable the `adaptive` feature the first time you select an element, and the next time you select that element and it doesn't exist, whispercrawler will remember its properties and search on the website for the element with the highest percentage of similarity to that element.
 
 ```python
 from whispercrawler import Selector, Fetcher
@@ -56,7 +56,7 @@ page = Fetcher.get('https://example.com')
 # then
 element = page.css('#p1', auto_save=True)
 if not element:  # One day website changes?
-    element = page.css('#p1', adaptive=True)  # WhisperCrawler still finds it!
+    element = page.css('#p1', adaptive=True)  # whispercrawler still finds it!
 # the rest of your code...
 ```
 It works with all selection methods, not just CSS/XPath selection.
@@ -82,14 +82,14 @@ Testing the same selector in both versions:
 >> element2 = page.css(selector, adaptive=True)[0]
 >> 
 >> if element1.text == element2.text:
-...    print('WhisperCrawler found the same element in the old and new designs!')
-'WhisperCrawler found the same element in the old and new designs!'
+...    print('whispercrawler found the same element in the old and new designs!')
+'whispercrawler found the same element in the old and new designs!'
 ```
-The `adaptive_domain` argument is used here because WhisperCrawler sees `archive.org` and `stackoverflow.com` as two different domains and would isolate their `adaptive` data. Passing `adaptive_domain` tells WhisperCrawler to treat them as the same website for adaptive data storage.
+The `adaptive_domain` argument is used here because whispercrawler sees `archive.org` and `stackoverflow.com` as two different domains and would isolate their `adaptive` data. Passing `adaptive_domain` tells whispercrawler to treat them as the same website for adaptive data storage.
 
 In a typical scenario with the same URL for both requests, the `adaptive_domain` argument is not needed. The adaptive logic works the same way with both the `Selector` and `Fetcher` classes.
 
-**Note:** The main reason for creating the `adaptive_domain` argument was to handle if the website changed its URL while changing the design/structure. In that case, it can be used to continue using the previously stored adaptive data for the new URL. Otherwise, WhisperCrawler will consider it a new website and discard the old data.
+**Note:** The main reason for creating the `adaptive_domain` argument was to handle if the website changed its URL while changing the design/structure. In that case, it can be used to continue using the previously stored adaptive data for the new URL. Otherwise, whispercrawler will consider it a new website and discard the old data.
 
 ## How the adaptive scraping feature works
 Adaptive scraping works in two phases:
@@ -101,19 +101,19 @@ After selecting an element through any method, the library can find it the next 
 
 The general logic is as follows:
 
-  1. WhisperCrawler saves that element's unique properties (methods shown below).
-  2. WhisperCrawler uses its configured database (SQLite by default) and saves each element's unique properties.
+  1. whispercrawler saves that element's unique properties (methods shown below).
+  2. whispercrawler uses its configured database (SQLite by default) and saves each element's unique properties.
   3. Because everything about the element can be changed or removed by the website's owner(s), nothing from the element can be used as a unique identifier for the database. The storage system relies on two things:
      1. The domain of the current website. When using the `Selector` class, pass it when initializing; when using a fetcher, the domain is automatically taken from the URL.
      2. An `identifier` to query that element's properties from the database. The identifier does not always need to be set manually (see below).
 
      Together, they will later be used to retrieve the element's unique properties from the database.
 
-  4. Later, when the website's structure changes, enabling `adaptive` causes WhisperCrawler to retrieve the element's unique properties and match all elements on the page against them. A score is calculated based on their similarity to the desired element. Everything is taken into consideration in that comparison.
+  4. Later, when the website's structure changes, enabling `adaptive` causes whispercrawler to retrieve the element's unique properties and match all elements on the page against them. A score is calculated based on their similarity to the desired element. Everything is taken into consideration in that comparison.
   5. The element(s) with the highest similarity score to the wanted element are returned.
 
 ### The unique properties
-The unique properties WhisperCrawler relies on are:
+The unique properties whispercrawler relies on are:
 
 - Element tag name, text, attributes (names and values), siblings (tag names only), and path (tag names only).
 - Element's parent tag name, attributes (names and values), and text.
@@ -133,7 +133,7 @@ Examples:
 >>> Fetcher.adaptive = True
 >>> page = Fetcher.get('https://example.com')
 ```
-When using the [Selector](main_classes.md#selector) class, pass the URL of the website with the `url` argument so WhisperCrawler can separate the properties saved for each element by domain.
+When using the [Selector](main_classes.md#selector) class, pass the URL of the website with the `url` argument so whispercrawler can separate the properties saved for each element by domain.
 
 If no URL is passed, the word `default` will be used in place of the URL field while saving the element's unique properties. This is only an issue when using the same identifier for a different website without passing the URL parameter. The save process overwrites previous data, and the `adaptive` feature uses only the latest saved properties.
 

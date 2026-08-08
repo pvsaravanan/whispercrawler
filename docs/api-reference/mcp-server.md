@@ -5,7 +5,7 @@ search:
 
 # MCP Server API Reference
 
-The **WhisperCrawler MCP Server** provides six powerful tools for web scraping through the Model Context Protocol (MCP). This server integrates WhisperCrawler's capabilities directly into AI chatbots and agents, allowing conversational web scraping with advanced anti-bot bypass features.
+The **whispercrawler MCP Server** provides six powerful tools for web scraping through the Model Context Protocol (MCP). This server integrates whispercrawler's capabilities directly into AI chatbots and agents, allowing conversational web scraping with advanced anti-bot bypass features.
 
 You can start the MCP server by running:
 

@@ -45,7 +45,7 @@ def test_lxml():
         e.text
         for e in etree.fromstring(
             large_html,
-            # WhisperCrawler and Parsel use the same parser inside, so this is just to make it fair
+            # whispercrawler and Parsel use the same parser inside, so this is just to make it fair
             parser=html.HTMLParser(recover=True, huge_tree=True),
         ).cssselect(".item")
     ]
@@ -94,9 +94,9 @@ def test_selectolax():
 def display(results):
     # Sort and display results
     sorted_results = sorted(results.items(), key=lambda x: x[1])  # Sort by time
-    whispercrawler_time = results["WhisperCrawler"]
+    whispercrawler_time = results["whispercrawler"]
     print("\nRanked Results (fastest to slowest):")
-    print(f" i. {'Library tested':<18} | {'avg. time (ms)':<15} | vs WhisperCrawler")
+    print(f" i. {'Library tested':<18} | {'avg. time (ms)':<15} | vs whispercrawler")
     print("-" * 50)
     for i, (test_name, test_time) in enumerate(sorted_results, 1):
         compare = round(test_time / whispercrawler_time, 3)
@@ -123,7 +123,7 @@ if __name__ == "__main__":
     results1 = {
         "Raw Lxml": test_lxml(),
         "Parsel/Scrapy": test_parsel(),
-        "WhisperCrawler": test_whispercrawler(),
+        "whispercrawler": test_whispercrawler(),
         "Selectolax": test_selectolax(),
         "PyQuery": test_pyquery(),
         "BS4 with Lxml": test_bs4_lxml(),
@@ -138,7 +138,7 @@ if __name__ == "__main__":
         " Benchmark: Speed of searching for an element by text content, and retrieving the text of similar elements\n"
     )
     results2 = {
-        "WhisperCrawler": test_whispercrawler_text(req.text),
+        "whispercrawler": test_whispercrawler_text(req.text),
         "AutoScraper": test_autoscraper(req.text),
     }
     display(results2)

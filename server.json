@@ -1,7 +1,7 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "whispercrawl/whispercrawler",
-  "title": "WhisperCrawler MCP Server",
+  "title": "whispercrawler MCP Server",
   "description": "Web scraping with stealth HTTP, real browsers, and Cloudflare bypass. CSS selectors supported.",
   "websiteUrl": "https://whispercrawler.io/ai/mcp-server.html",
   "repository": {
@@ -14,12 +14,12 @@
       "mimeType": "image/png"
     }
   ],
-  "version": "0.4.2",
+  "version": "0.1.1",
   "packages": [
     {
       "registryType": "pypi",
       "identifier": "whispercrawler",
-      "version": "0.4.2",
+      "version": "0.1.1",
       "runtimeHint": "uvx",
       "packageArguments": [
         {

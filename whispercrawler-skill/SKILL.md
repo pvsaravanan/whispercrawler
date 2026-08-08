@@ -1,13 +1,13 @@
 ---
 name: whispercrawler-official
-description: Scrape web pages using WhisperCrawler with anti-bot bypass (like Cloudflare Turnstile), stealth headless browsing, spiders framework, adaptive scraping, and JavaScript rendering. Use when asked to scrape, crawl, or extract data from websites; web_fetch fails; the site has anti-bot protections; write Python code to scrape/crawl; or write spiders.
-version: 0.4.2
+description: Scrape web pages using whispercrawler with anti-bot bypass (like Cloudflare Turnstile), stealth headless browsing, spiders framework, adaptive scraping, and JavaScript rendering. Use when asked to scrape, crawl, or extract data from websites; web_fetch fails; the site has anti-bot protections; write Python code to scrape/crawl; or write spiders.
+version: 0.1.1
 license: Complete terms in LICENSE.txt
 ---
 
-# WhisperCrawler
+# whispercrawler
 
-WhisperCrawler is an adaptive Web Scraping framework that handles everything from a single request to a full-scale crawl.
+whispercrawler is an adaptive Web Scraping framework that handles everything from a single request to a full-scale crawl.
 
 Its parser learns from website changes and automatically relocates your elements when pages update. Its fetchers bypass anti-bot systems like Cloudflare Turnstile out of the box. And its spider framework lets you scale up to concurrent, multi-session crawls with pause/resume and automatic proxy rotation — all in a few lines of Python. One library, zero compromises.
 
@@ -22,7 +22,7 @@ Blazing fast crawls with real-time stats and streaming. Built by Web Scrapers fo
 
 Create a virtual Python environment through any way available, like `venv`, then inside the environment do:
 
-`pip install "whispercrawler[all]>=0.4.2"`
+`pip install "whispercrawler[fetchers,mcp]>=0.1.1"`
 
 Then do this to download all the browsers' dependencies:
 
@@ -189,7 +189,7 @@ If the user wants to do more than that, coding will give them that ability.
 
 ## Code overview
 
-Coding is the only way to leverage all of WhisperCrawler's features since not all features can be used/customized through commands/MCP. Here's a quick overview of how to code with whispercrawler.
+Coding is the only way to leverage all of whispercrawler's features since not all features can be used/customized through commands/MCP. Here's a quick overview of how to code with whispercrawler.
 
 ### Basic Usage
 HTTP requests with session support

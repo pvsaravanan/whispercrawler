@@ -1,4 +1,4 @@
-# WhisperCrawler: A Free Alternative to AI for Robust Web Scraping
+# whispercrawler: A Free Alternative to AI for Robust Web Scraping
 
 Web scraping has long been a vital tool for data extraction, indexing, and preparing datasets, among other purposes. But experienced users often encounter persistent issues that can hinder effectiveness. Recently, there's been a noticeable shift toward AI-based web scraping, driven by its potential to address these challenges.
 
@@ -32,11 +32,11 @@ This approach is, of course, beautiful. I love AI and find it very fascinating, 
 
 Most websites have vast amounts of content per page, which you will need to pass to the AI somehow so it can do its magic. This will burn through tokens like fire in a haystack, quickly accumulating high costs.
 
-Unless money is irrelevant to you, you will try to find less expensive approaches, and that's where WhisperCrawler comes into play :smile:
+Unless money is irrelevant to you, you will try to find less expensive approaches, and that's where whispercrawler comes into play :smile:
 
-## WhisperCrawler got you covered
+## whispercrawler got you covered
 
-WhisperCrawler can handle almost all issues you will face during Web Scraping, and the following updates will cover the rest carefully.
+whispercrawler can handle almost all issues you will face during Web Scraping, and the following updates will cover the rest carefully.
 
 ### Solving issue T1: Rapidly changing website structures
 That's why the [adaptive](https://whispercrawler.readthedocs.io/en/latest/parsing/adaptive.html) feature was made. You knew I would talk about it, and here we are :)
@@ -50,16 +50,16 @@ I have already explained this in more detail, with many examples. Read more from
 ### Solving issue T2: Unstable selectors
 If you have been doing Web scraping for a long enough time, you have likely experienced this once. I'm referring to a website that employs poor design patterns, built on raw HTML without any IDs/classes, or uses random class names with nothing else to rely on, etc...
 
-In these cases, standard selection methods with CSS/XPath selectors won't be optimal, and that's why WhisperCrawler provides three more methods for Selection:
+In these cases, standard selection methods with CSS/XPath selectors won't be optimal, and that's why whispercrawler provides three more methods for Selection:
 
 1. [Selection by element content](https://whispercrawler.readthedocs.io/en/latest/parsing/selection.html#text-content-selection): Through text content (`find_by_text`) or regex that matches text content (`find_by_regex`)
 2. [Selecting elements similar to another element](https://whispercrawler.readthedocs.io/en/latest/parsing/selection.html#finding-similar-elements): You find an element, and we will do the rest!
 3. [Selecting elements by filters](https://whispercrawler.readthedocs.io/en/latest/parsing/selection.html#filters-based-searching): You specify conditions/filters that this element must fulfill, we find it!
 
-There is no need to explain any of these; click on the links, and it will be clear how WhisperCrawler solves this.
+There is no need to explain any of these; click on the links, and it will be clear how whispercrawler solves this.
 
 ### Solving issue T3: Increasingly complex anti-bot measures
-It's well known that creating an undetectable spider requires more than residential/mobile proxies and human-like behavior. It also needs a hard-to-detect browser, which WhisperCrawler provides two main options to solve:
+It's well known that creating an undetectable spider requires more than residential/mobile proxies and human-like behavior. It also needs a hard-to-detect browser, which whispercrawler provides two main options to solve:
 
 1. [DynamicFetcher](https://whispercrawler.readthedocs.io/en/latest/fetching/dynamic.html) — This fetcher provides flexible browser automation with multiple configuration options and little under-the-hood stealth improvements.
 2. [StealthyFetcher](https://whispercrawler.readthedocs.io/en/latest/fetching/stealthy.html) — Because we live in a harsh world and you need to take [full measure instead of half-measures](https://www.youtube.com/watch?v=7BE4QcwX4dU), `StealthyFetcher` was born. This fetcher uses our stealthy browser -- a version of [DynamicFetcher](https://whispercrawler.readthedocs.io/en/latest/fetching/dynamic.html) that nearly bypasses all annoying anti-protections, provides tools to handle the rest, and automatically bypasses all types of Cloudflare's Turnstile/Interstitial!
@@ -68,7 +68,7 @@ We keep improving these two with each update, so stay tuned :)
 
 ### Solving issues B1 & B2: Extreme Website Diversity / Identifying Relevant Data
 
-This one is tough to handle, but WhisperCrawler's flexibility makes it possible. 
+This one is tough to handle, but whispercrawler's flexibility makes it possible. 
 
 I talked with someone who uses AI to extract prices from different websites. He is only interested in prices and titles, so he uses AI to find the price for him.
 
@@ -94,14 +94,14 @@ It will be a bit boring, but it's definitely less expensive than AI.
 This example illustrates the point I aim to convey here. Not every challenge will need AI to be solved, but sometimes you need to be creative, and that might save you a lot of money.
 
 ### Solving issue B3: Pagination variations
-This issue, WhisperCrawler currently doesn't have a direct method to automatically extract pagination's URLs for you, but it will be added with the upcoming updates :)
+This issue, whispercrawler currently doesn't have a direct method to automatically extract pagination's URLs for you, but it will be added with the upcoming updates :)
 
 But you can handle most websites if you search for the most common patterns with `page.find_by_text('Next')['href']` or `page.find_by_text('load more')['href']` or selectors like `'a[href*="?page="]'` or `'a[href*="/page/"]'`—you get the idea.
 
 ## Cost Comparison and Savings
 For a quick comparison.
 
-| Aspect         | WhisperCrawler                                                                  | AI-Based Tools (e.g., Browse AI, Oxylabs)                                  |
+| Aspect         | whispercrawler                                                                  | AI-Based Tools (e.g., Browse AI, Oxylabs)                                  |
 |----------------|----------------------------------------------------------------------------|----------------------------------------------------------------------------|
 | Cost Structure | Likely free or low-cost, no per-use fees                                   | Starts at $19/month (Browse AI) to $49/month (Oxylabs), scales with usage  |
 | Setup Effort   | Requires little technical expertise, manual setup                          | Often no-code, easier for non-technical users                              |
@@ -112,6 +112,6 @@ For a quick comparison.
 This table is based on pricing from [Browse AI Pricing](https://www.browse.ai/pricing) and [Oxylabs Web Scraper API Pricing](https://oxylabs.io/products/scraper-api/web/pricing)
 
 ## Conclusion
-While AI offers powerful capabilities, its cost can be prohibitive for many Web scraping tasks. WhisperCrawler provides a robust, flexible, and cost-effective toolkit for tackling the real-world challenges of both targeted and broad scraping, often eliminating the need for expensive AI solutions. You can build resilient scrapers more efficiently by leveraging features like `adaptive`, diverse selection methods, and advanced fetchers.
+While AI offers powerful capabilities, its cost can be prohibitive for many Web scraping tasks. whispercrawler provides a robust, flexible, and cost-effective toolkit for tackling the real-world challenges of both targeted and broad scraping, often eliminating the need for expensive AI solutions. You can build resilient scrapers more efficiently by leveraging features like `adaptive`, diverse selection methods, and advanced fetchers.
 
-Explore the documentation further and see how WhisperCrawler can simplify your future Web Scraping projects!
+Explore the documentation further and see how whispercrawler can simplify your future Web Scraping projects!

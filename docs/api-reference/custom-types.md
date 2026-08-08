@@ -5,7 +5,7 @@ search:
 
 # Custom Types API Reference
 
-Here's the reference information for all custom types of classes WhisperCrawler implemented, with all their parameters, attributes, and methods.
+Here's the reference information for all custom types of classes whispercrawler implemented, with all their parameters, attributes, and methods.
 
 You can import all of them directly like below:
 

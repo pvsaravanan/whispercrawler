@@ -1,6 +1,6 @@
-# Using WhisperCrawler's custom types
+# Using whispercrawler's custom types
 
-> You can take advantage of the custom-made types for WhisperCrawler and use them outside the library if you want. It's better than copying their code, after all :)
+> You can take advantage of the custom-made types for whispercrawler and use them outside the library if you want. It's better than copying their code, after all :)
 
 ### All current types can be imported alone, like below
 ```python

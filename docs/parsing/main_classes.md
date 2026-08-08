@@ -4,9 +4,9 @@
 
     - You’ve completed or read the [Querying elements](../parsing/selection.md) page to understand how to find/extract elements from the [Selector](../parsing/main_classes.md#selector) object.
 
-After exploring the various ways to select elements with WhisperCrawler and its related features, let's take a step back and examine the [Selector](#selector) class in general, as well as other objects, to gain a better understanding of the parsing engine.
+After exploring the various ways to select elements with whispercrawler and its related features, let's take a step back and examine the [Selector](#selector) class in general, as well as other objects, to gain a better understanding of the parsing engine.
 
-The [Selector](#selector) class is the core parsing engine in WhisperCrawler, providing HTML parsing and element selection capabilities. You can always import it with any of the following imports
+The [Selector](#selector) class is the core parsing engine in whispercrawler, providing HTML parsing and element selection capabilities. You can always import it with any of the following imports
 ```python
 from whispercrawler import Selector
 from whispercrawler.parser import Selector
@@ -21,7 +21,7 @@ page = Selector(
 # Then select elements as you like
 elements = page.css('.product')
 ```
-In WhisperCrawler, the main object you deal with after passing an HTML source or fetching a website is, of course, a [Selector](#selector) object. Any operation you do, like selection, navigation, etc., will return either a [Selector](#selector) object or a [Selectors](#selectors) object, given that the result is element/elements from the page, not text or similar.
+In whispercrawler, the main object you deal with after passing an HTML source or fetching a website is, of course, a [Selector](#selector) object. Any operation you do, like selection, navigation, etc., will return either a [Selector](#selector) object or a [Selectors](#selectors) object, given that the result is element/elements from the page, not text or similar.
 
 In other words, the main page is a [Selector](#selector) object, and the elements within are [Selector](#selector) objects, and so on. Any text, such as the text content inside elements or the text inside element attributes, is a [TextHandler](#texthandler) object, and the attributes of each element are stored as [AttributesHandler](#attributeshandler). We will return to both objects later, so let's focus on the [Selector](#selector) object.
 
@@ -40,7 +40,7 @@ Then you have the arguments for parsing adjustments or adjusting/manipulating th
 I have intended to ignore the arguments `huge_tree` and `root` to avoid making this page more complicated than needed.
 You may notice that I'm doing that a lot because it involves advanced features that you don't need to know to use the library. The development section will cover these missing parts if you are very invested.
 
-After that, most properties on the main page and its elements are lazily loaded. This means they don't get initialized until you use them like the text content of a page/element, and this is one of the reasons for WhisperCrawler speed :)
+After that, most properties on the main page and its elements are lazily loaded. This means they don't get initialized until you use them like the text content of a page/element, and this is one of the reasons for whispercrawler speed :)
 
 ### Properties
 You have already seen much of this on the [overview](../overview.md) page, but don't worry if you didn't. We will review it more thoroughly using more advanced methods/usages. For clarity, the properties for traversal are separated below in the [traversal](#traversal) section.

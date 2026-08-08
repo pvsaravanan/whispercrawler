@@ -29,12 +29,11 @@ jobs:
       - name: Ruff (format)
         run: ruff format --check whispercrawler/
 
-      # `strict = true` is aspirational: the codebase currently reports ~1300 errors,
-      # most of them in vendored parsing code. Reported for visibility, not enforced.
-      # Drop `continue-on-error` once that count reaches zero.
-      - name: Mypy (informational)
-        run: mypy whispercrawler/ || true
-        continue-on-error: true
+      # Enforced. `strict = true` holds for every module except the grandfathered
+      # list in pyproject.toml, so new code cannot regress. See the comment above
+      # `[[tool.mypy.overrides]]` there for how to shrink that list.
+      - name: Mypy
+        run: mypy whispercrawler/
 
   security:
     runs-on: ubuntu-latest

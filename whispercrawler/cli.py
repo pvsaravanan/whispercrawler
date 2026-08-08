@@ -11,7 +11,7 @@ from whispercrawler.core.utils._shell import _CookieParser, _ParseHeaders
 from whispercrawler.engines.toolbelt.custom import Response
 
 try:
-    from click import Choice, argument, command, group, option
+    from click import Choice, ClickException, argument, command, group, option
 except (ImportError, ModuleNotFoundError) as e:
     raise ModuleNotFoundError(
         "You need to install whispercrawler with any of the extras to enable Shell commands. See: https://whispercrawler.readthedocs.io/en/latest/#installation"
@@ -54,7 +54,12 @@ def __Request_and_Save(
         output_path = Path.cwd() / output_file
 
     response = fetcher_func(url, **kwargs)
-    Convertor.write_content_to_file(response, str(output_path), css_selector)
+    try:
+        Convertor.write_content_to_file(response, str(output_path), css_selector)
+    except ValueError as err:
+        # Surface it as a plain CLI error instead of a traceback; the exit code is what
+        # a calling script will actually check.
+        raise ClickException(str(err)) from err
     log.info(f"Content successfully saved to '{output_path}'")
 
 
@@ -116,7 +121,7 @@ def __BuildRequest(
     return {**request_kwargs, **kwargs}
 
 
-@command(help="Install all WhisperCrawler's Fetchers dependencies")
+@command(help="Install all whispercrawler's Fetchers dependencies")
 @option(
     "-f",
     "--force",
@@ -124,7 +129,7 @@ def __BuildRequest(
     is_flag=True,
     default=False,
     type=bool,
-    help="Force WhisperCrawler to reinstall all Fetchers dependencies",
+    help="Force whispercrawler to reinstall all Fetchers dependencies",
 )
 def install(force):  # pragma: no cover
     if force or not __PACKAGE_DIR__.joinpath(".whispercrawler_dependencies_installed").exists():
@@ -159,7 +164,7 @@ def install(force):  # pragma: no cover
         print("The dependencies are already installed")
 
 
-@command(help="Run WhisperCrawler's MCP server (Check the docs for more info).")
+@command(help="Run whispercrawler's MCP server (Check the docs for more info).")
 @option(
     "--http",
     is_flag=True,

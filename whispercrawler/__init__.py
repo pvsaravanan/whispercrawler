@@ -1,11 +1,11 @@
-# WhisperCrawler — Adaptive Web Scraping Framework
+# whispercrawler — Adaptive Web Scraping Framework
 # MIT License
 #
 # Copyright (c) 2026, Saravanan P V
 #
 
 """
-WhisperCrawler — Adaptive Web Scraping Framework
+whispercrawler — Adaptive Web Scraping Framework
 
 This framework provides fast, stealthy, and self-healing web scraping.
 """
@@ -34,19 +34,19 @@ if TYPE_CHECKING:
     from whispercrawler.spiders import Request, Response, Spider
 
 _LAZY_IMPORTS = {
-    # Core WhisperCrawler logic renamed/aliased
+    # Core whispercrawler logic renamed/aliased
     "Selector": ("whispercrawler.parser", "Selector"),
     "Selectors": ("whispercrawler.parser", "Selectors"),
     "Page": ("whispercrawler.parser", "Page"),
     "PageList": ("whispercrawler.parser", "PageList"),
-    # Fetchers (WhisperCrawler names)
+    # Fetchers (whispercrawler names)
     "Fetcher": ("whispercrawler.fetchers", "Fetcher"),
     "AsyncFetcher": ("whispercrawler.fetchers", "AsyncFetcher"),
     "FetcherSession": ("whispercrawler.fetchers.requests", "FetcherSession"),
     "DynamicFetcher": ("whispercrawler.fetchers", "DynamicFetcher"),
     "StealthyFetcher": ("whispercrawler.fetchers", "StealthyFetcher"),
     "ShadowFetcher": ("whispercrawler.fetchers", "ShadowFetcher"),
-    # WhisperCrawler specific naming/aliases
+    # whispercrawler specific naming/aliases
     "Crawler": ("whispercrawler.fetchers", "Fetcher"),
     "AsyncCrawler": ("whispercrawler.fetchers", "AsyncFetcher"),
     "GhostCrawler": ("whispercrawler.fetchers", "DynamicFetcher"),

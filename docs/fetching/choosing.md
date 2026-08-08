@@ -3,13 +3,13 @@
 ## Introduction
 Fetchers are classes that can do requests or fetch pages for you easily in a single-line fashion with many features and then return a [Response](#response-object) object. Starting with v0.3, all fetchers have separate classes to keep the session running, so for example, a fetcher that uses a browser will keep the browser open till you finish all your requests through it instead of opening multiple browsers. So it depends on your use case.
 
-This feature was introduced because, before v0.2, WhisperCrawler was only a parsing engine. The target here is to gradually become the one-stop shop for all Web Scraping needs.
+This feature was introduced because, before v0.2, whispercrawler was only a parsing engine. The target here is to gradually become the one-stop shop for all Web Scraping needs.
 
 > Fetchers are not wrappers built on top of other libraries. However, they only use these libraries as an engine to request/fetch pages. To further clarify this, all fetchers have features that the underlying engines don't, while still fully leveraging those engines and optimizing them for Web Scraping.
 
 ## Fetchers Overview
 
-WhisperCrawler provides three different fetcher classes with their session classes; each fetcher is designed for a specific use case.
+whispercrawler provides three different fetcher classes with their session classes; each fetcher is designed for a specific use case.
 
 The following table compares them and can be quickly used for guidance.
 

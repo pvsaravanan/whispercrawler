@@ -25,7 +25,7 @@ Every spider needs three things:
 2. **`start_urls`** — A list of URLs to start crawling from.
 3. **`parse()`** — An async generator method that processes each response and yields results.
 
-The `parse()` method processes each response. You use the same selection methods you'd use with WhisperCrawler's [Selector](../parsing/main_classes.md#selector)/[Response](../fetching/choosing.md#response-object), and `yield` dictionaries to output scraped items.
+The `parse()` method processes each response. You use the same selection methods you'd use with whispercrawler's [Selector](../parsing/main_classes.md#selector)/[Response](../fetching/choosing.md#response-object), and `yield` dictionaries to output scraped items.
 
 ## Running the Spider
 

@@ -114,6 +114,7 @@ class StealthSession(PlaywrightSession, total=False):
     solve_cloudflare: bool
     captcha_api_key: Optional[str]
     captcha_service: str
+    ignore_https_errors: bool
 
 
 class StealthFetchParams(PlaywrightFetchParams, total=False):

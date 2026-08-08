@@ -1,4 +1,4 @@
-# WhisperCrawler — Adaptive Web Scraping Framework
+# whispercrawler — Adaptive Web Scraping Framework
 # MIT License
 #
 # Copyright (c) 2026, Saravanan P V

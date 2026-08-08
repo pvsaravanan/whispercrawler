@@ -127,6 +127,10 @@ class StealthConfig(PlaywrightConfig, kw_only=True, frozen=False, weakref=True):
     solve_cloudflare: bool = False
     captcha_api_key: Optional[str] = None
     captcha_service: str = "2captcha"
+    # Defaults to True because rotating MITM proxies routinely present certificates
+    # the browser cannot verify. Set False to enforce verification when the traffic
+    # path is trusted - it makes the session vulnerable to interception otherwise.
+    ignore_https_errors: bool = True
 
     def __post_init__(self):
         """Custom validation after msgspec validation"""

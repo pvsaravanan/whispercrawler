@@ -1,6 +1,6 @@
 # Proxy management and handling Blocks
 
-WhisperCrawler's `ProxyRotator` manages proxy rotation across requests. It works with all session types and integrates with the spider's blocked request retry system.
+whispercrawler's `ProxyRotator` manages proxy rotation across requests. It works with all session types and integrates with the spider's blocked request retry system.
 
 ## ProxyRotator
 

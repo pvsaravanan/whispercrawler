@@ -1,10 +1,10 @@
-# WhisperCrawler Interactive Shell Guide
+# whispercrawler Interactive Shell Guide
 
 <script src="https://asciinema.org/a/736339.js" id="asciicast-736339" async data-autoplay="1" data-loop="1" data-cols="225" data-rows="40" data-start-at="00:06" data-speed="1.5" data-theme="tango"></script>
 
 **Powerful Web Scraping REPL for Developers and Data Scientists**
 
-The WhisperCrawler Interactive Shell is an enhanced IPython-based environment designed specifically for Web Scraping tasks. It provides instant access to all WhisperCrawler features, clever shortcuts, automatic page management, and advanced tools, such as conversion of the curl command.
+The whispercrawler Interactive Shell is an enhanced IPython-based environment designed specifically for Web Scraping tasks. It provides instant access to all whispercrawler features, clever shortcuts, automatic page management, and advanced tools, such as conversion of the curl command.
 
 !!! success "Prerequisites"
 
@@ -20,7 +20,7 @@ The interactive shell transforms web scraping from a slow script-and-run cycle i
 
 - **Rapid prototyping**: Test scraping strategies instantly
 - **Data exploration**: Interactively navigate and extract from websites  
-- **Learning WhisperCrawler**: Experiment with features in real-time
+- **Learning whispercrawler**: Experiment with features in real-time
 - **Debugging scrapers**: Step through requests and inspect results
 - **Converting workflows**: Transform curl commands from browser DevTools to a Fetcher request in a one-liner
 
@@ -39,7 +39,7 @@ whispercrawler shell -c "get('https://quotes.toscrape.com'); print(len(page.css(
 whispercrawler shell --loglevel info
 ```
 
-Once launched, you'll see the WhisperCrawler banner and can immediately start scraping as the video above shows:
+Once launched, you'll see the whispercrawler banner and can immediately start scraping as the video above shows:
 
 ```python
 # No imports needed - everything is ready!
@@ -238,7 +238,7 @@ Here are a few examples generated via AI:
 
 If you need help other than what is available in-terminal, you can:
 
-- [WhisperCrawler Documentation](https://whispercrawler.readthedocs.io/)
+- [whispercrawler Documentation](https://whispercrawler.readthedocs.io/)
 - [Discord Community](https://discord.gg/EMgGbDceNQ)
 - [GitHub Issues](https://github.com/WhisperCrawl/WhisperCrawler/issues)  
 

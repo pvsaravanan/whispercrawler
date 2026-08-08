@@ -1,7 +1,7 @@
 # Querying elements
-WhisperCrawler currently supports parsing HTML pages exclusively, so it doesn't support XML feeds. This decision was made because the adaptive feature won't work with XML, but that might change soon, so stay tuned :)
+whispercrawler currently supports parsing HTML pages exclusively, so it doesn't support XML feeds. This decision was made because the adaptive feature won't work with XML, but that might change soon, so stay tuned :)
 
-In WhisperCrawler, there are five main ways to find elements:
+In whispercrawler, there are five main ways to find elements:
 
 1. CSS3 Selectors
 2. XPath Selectors
@@ -9,7 +9,7 @@ In WhisperCrawler, there are five main ways to find elements:
 4. Finding elements whose content contains a specific text
 5. Finding elements whose content matches a specific regex
 
-Of course, there are other indirect ways to find elements with WhisperCrawler, but here we will discuss the main ways in detail. We will also bring up one of the most remarkable features of WhisperCrawler: the ability to find elements that are similar to the element you have; you can jump to that section directly from [here](#finding-similar-elements).
+Of course, there are other indirect ways to find elements with whispercrawler, but here we will discuss the main ways in detail. We will also bring up one of the most remarkable features of whispercrawler: the ability to find elements that are similar to the element you have; you can jump to that section directly from [here](#finding-similar-elements).
 
 If you are new to Web Scraping, have little to no experience writing selectors, and want to start quickly, I recommend you jump directly to learning the `find`/`find_all` methods from [here](#filters-based-searching).
 
@@ -18,9 +18,9 @@ If you are new to Web Scraping, have little to no experience writing selectors, 
 ### What are CSS selectors?
 [CSS](https://en.wikipedia.org/wiki/CSS) is a language for applying styles to HTML documents. It defines selectors to associate those styles with specific HTML elements.
 
-WhisperCrawler implements CSS3 selectors as described in the [W3C specification](http://www.w3.org/TR/2011/REC-css3-selectors-20110929/). CSS selectors support comes from `cssselect`, so it's better to read about which [selectors are supported from cssselect](https://cssselect.readthedocs.io/en/latest/#supported-selectors) and pseudo-functions/elements.
+whispercrawler implements CSS3 selectors as described in the [W3C specification](http://www.w3.org/TR/2011/REC-css3-selectors-20110929/). CSS selectors support comes from `cssselect`, so it's better to read about which [selectors are supported from cssselect](https://cssselect.readthedocs.io/en/latest/#supported-selectors) and pseudo-functions/elements.
 
-Also, WhisperCrawler implements some non-standard pseudo-elements like:
+Also, whispercrawler implements some non-standard pseudo-elements like:
 
 * To select text nodes, use ``::text``.
 * To select attribute values, use ``::attr(name)`` where name is the name of the attribute that you want the value of
@@ -30,9 +30,9 @@ In short, if you come from Scrapy/Parsel, you will find the same logic for selec
 To select elements with CSS selectors, use the `css` method, which returns `Selectors`. Use `[0]` to get the first element, or `.get()` / `.getall()` to extract text values from text/attribute pseudo-selectors.
 
 ### What are XPath selectors?
-[XPath](https://en.wikipedia.org/wiki/XPath) is a language for selecting nodes in XML documents, which can also be used with HTML. This [cheatsheet](https://devhints.io/xpath) is a good resource for learning about [XPath](https://en.wikipedia.org/wiki/XPath). WhisperCrawler adds XPath selectors directly through [lxml](https://lxml.de/).
+[XPath](https://en.wikipedia.org/wiki/XPath) is a language for selecting nodes in XML documents, which can also be used with HTML. This [cheatsheet](https://devhints.io/xpath) is a good resource for learning about [XPath](https://en.wikipedia.org/wiki/XPath). whispercrawler adds XPath selectors directly through [lxml](https://lxml.de/).
 
-In short, it is the same situation as CSS Selectors; if you come from Scrapy/Parsel, you will find the same logic for selectors here. However, WhisperCrawler doesn't implement the XPath extension function `has-class` as Scrapy/Parsel does. Instead, it provides the `has_class` method, which can be used on elements returned for the same purpose.
+In short, it is the same situation as CSS Selectors; if you come from Scrapy/Parsel, you will find the same logic for selectors here. However, whispercrawler doesn't implement the XPath extension function `has-class` as Scrapy/Parsel does. Instead, it provides the `has_class` method, which can be used on elements returned for the same purpose.
 
 To select elements with XPath selectors, you have the `xpath` method. Again, this method follows the same logic as the CSS selectors method above.
 
@@ -94,7 +94,7 @@ for index, link in enumerate(links):
 ```
 
 ## Text-content selection
-WhisperCrawler provides the ability to select elements based on their direct text content, and you have two ways to do this:
+whispercrawler provides the ability to select elements based on their direct text content, and you have two ways to do this:
 
 1. Elements whose direct text content contains the given text with many options through the `find_by_text` method.
 2. Elements whose direct text content matches the given regex pattern with many options through the `find_by_regex` method.
@@ -107,7 +107,7 @@ With `find_by_text`, you pass the text as the first argument; with `find_by_rege
 * **case_sensitive**: If `True`, the case of the letters will be considered.
 * **clean_match**: If `True`, all whitespaces and consecutive spaces will be replaced with a single space before matching.
 
-By default, WhisperCrawler searches for the exact matching of the text/pattern you pass to `find_by_text`, so the text content of the wanted element has to be ONLY the text you input, but that's why it also has one extra argument, which is:
+By default, whispercrawler searches for the exact matching of the text/pattern you pass to `find_by_text`, so the text content of the wanted element has to be ONLY the text you input, but that's why it also has one extra argument, which is:
 
 * **partial**: If enabled, `find_by_text` will return elements that contain the input text. So it's not an exact match anymore
 
@@ -116,15 +116,15 @@ By default, WhisperCrawler searches for the exact matching of the text/pattern y
     The method `find_by_regex` can accept both regular strings and a compiled regex pattern as its first argument, as you will see in the upcoming examples.
 
 ### Finding Similar Elements
-One of the most remarkable new features WhisperCrawler puts on the table is the ability to tell WhisperCrawler to find elements similar to the element at hand. This feature's inspiration came from the AutoScraper library, but in WhisperCrawler, it can be used on elements found by any method. Most of its usage would likely occur after finding elements through text content, similar to how AutoScraper works, making it convenient to explain here.
+One of the most remarkable new features whispercrawler puts on the table is the ability to tell whispercrawler to find elements similar to the element at hand. This feature's inspiration came from the AutoScraper library, but in whispercrawler, it can be used on elements found by any method. Most of its usage would likely occur after finding elements through text content, similar to how AutoScraper works, making it convenient to explain here.
 
 So, how does it work?
 
-Imagine a scenario where you found a product by its title, for example, and you want to extract other products listed in the same table/container. With the element you have, you can call the method `.find_similar()` on it, and WhisperCrawler will:
+Imagine a scenario where you found a product by its title, for example, and you want to extract other products listed in the same table/container. With the element you have, you can call the method `.find_similar()` on it, and whispercrawler will:
 
 1. Find all page elements with the same DOM tree depth as this element. 
 2. All found elements will be checked, and those without the same tag name, parent tag name, and grandparent tag name will be dropped.
-3. Now we are sure (like 99% sure) that these elements are the ones we want, but as a last check, WhisperCrawler will use fuzzy matching to drop the elements whose attributes don't look like the attributes of our element. There's a percentage to control this step, and I recommend you not play with it unless the default settings don't get the elements you want.
+3. Now we are sure (like 99% sure) that these elements are the ones we want, but as a last check, whispercrawler will use fuzzy matching to drop the elements whose attributes don't look like the attributes of our element. There's a percentage to control this step, and I recommend you not play with it unless the default settings don't get the elements you want.
 
 That's a lot of talking, I know, but I had to go deep. I will give examples of using this method in the next section, but first, these are the arguments that can be passed to this method:
 
@@ -189,7 +189,7 @@ Get the first element whose text content matches my price regex
 >>> page.find_by_regex(r'£[\d\.]+').text
 '£51.77'
 ```
-It's the same if you pass the compiled regex as well; WhisperCrawler will detect the input type and act upon that:
+It's the same if you pass the compiled regex as well; whispercrawler will detect the input type and act upon that:
 ```python
 >>> import re
 >>> regex = re.compile(r'£[\d\.]+')
@@ -331,7 +331,7 @@ def extract_reviews(page):
     ]
 ```
 ## Filters-based searching
-This search method is arguably the best way to find elements in WhisperCrawler, as it is powerful and easier for newcomers to Web Scraping to learn than writing selectors. 
+This search method is arguably the best way to find elements in whispercrawler, as it is powerful and easier for newcomers to Web Scraping to learn than writing selectors. 
 
 Inspired by BeautifulSoup's `find_all` function, you can find elements using the `find_all` and `find` methods. Both methods can accept multiple filters and return all elements on the pages where all these filters apply.
 
@@ -474,7 +474,7 @@ Generate a full XPath selector for the `url_element` element from the start of t
 ```
 !!! abstract "Note:"
 
-    When you tell WhisperCrawler to create a short selector, it tries to find a unique element to use in generation as a stop point, like an element with an `id` attribute, but in our case, there wasn't any, so that's why the short and the full selector will be the same.
+    When you tell whispercrawler to create a short selector, it tries to find a unique element to use in generation as a stop point, like an element with an `id` attribute, but in our case, there wasn't any, so that's why the short and the full selector will be the same.
 
 ## Using selectors with regular expressions
 Similar to `parsel`/`scrapy`, `re` and `re_first` methods are available for extracting data using regular expressions. However, unlike the former libraries, these methods are in nearly all classes like `Selector`/`Selectors`/`TextHandler` and `TextHandlers`, which means you can use them directly on the element even if you didn't select a text node. 

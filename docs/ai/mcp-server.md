@@ -1,12 +1,12 @@
-# WhisperCrawler MCP Server Guide
+# whispercrawler MCP Server Guide
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/qyFk3ZNwOxE?si=3FHzgcYCb66iJ6e3" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
-The **WhisperCrawler MCP Server** is a new feature that brings WhisperCrawler's powerful Web Scraping capabilities directly to your favorite AI chatbot or AI agent. This integration allows you to scrape websites, extract data, and bypass anti-bot protections conversationally through Claude's AI interface or any interface that supports MCP.
+The **whispercrawler MCP Server** is a new feature that brings whispercrawler's powerful Web Scraping capabilities directly to your favorite AI chatbot or AI agent. This integration allows you to scrape websites, extract data, and bypass anti-bot protections conversationally through Claude's AI interface or any interface that supports MCP.
 
 ## Features
 
-The WhisperCrawler MCP Server provides six powerful tools for web scraping:
+The whispercrawler MCP Server provides six powerful tools for web scraping:
 
 ### 🚀 Basic HTTP Scraping
 - **`get`**: Fast HTTP requests with browser fingerprint impersonation, generating real browser headers matching the TLS version, HTTP/3, and more!
@@ -22,27 +22,27 @@ The WhisperCrawler MCP Server provides six powerful tools for web scraping:
 
 ### Key Capabilities
 - **Smart Content Extraction**: Convert web pages/elements to Markdown, HTML, or extract a clean version of the text content
-- **CSS Selector Support**: Use the WhisperCrawler engine to target specific elements with precision before handing the content to the AI
+- **CSS Selector Support**: Use the whispercrawler engine to target specific elements with precision before handing the content to the AI
 - **Anti-Bot Bypass**: Handle Cloudflare Turnstile, Interstitial, and other protections
 - **Proxy Support**: Use proxies for anonymity and geo-targeting
 - **Browser Impersonation**: Mimic real browsers with TLS fingerprinting, real browser headers matching that version, and more
 - **Parallel Processing**: Scrape multiple URLs concurrently for efficiency
 
-#### But why use WhisperCrawler MCP Server instead of other available tools?
+#### But why use whispercrawler MCP Server instead of other available tools?
 
-Aside from its stealth capabilities and ability to bypass Cloudflare Turnstile/Interstitial, WhisperCrawler's server is the only one that lets you select specific elements to pass to the AI, saving a lot of time and tokens!
+Aside from its stealth capabilities and ability to bypass Cloudflare Turnstile/Interstitial, whispercrawler's server is the only one that lets you select specific elements to pass to the AI, saving a lot of time and tokens!
 
-The way other servers work is that they extract the content, then pass it all to the AI to extract the fields you want. This causes the AI to consume far more tokens than needed (from irrelevant content). WhisperCrawler solves this problem by allowing you to pass a CSS selector to narrow down the content you want before passing it to the AI, which makes the whole process much faster and more efficient.
+The way other servers work is that they extract the content, then pass it all to the AI to extract the fields you want. This causes the AI to consume far more tokens than needed (from irrelevant content). whispercrawler solves this problem by allowing you to pass a CSS selector to narrow down the content you want before passing it to the AI, which makes the whole process much faster and more efficient.
 
 If you don't know how to write/use CSS selectors, don't worry. You can tell the AI in the prompt to write selectors to match possible fields for you and watch it try different combinations until it finds the right one, as we will show in the examples section.
 
 ## Installation
 
-Install WhisperCrawler with MCP Support, then double-check that the browser dependencies are installed.
+Install whispercrawler with MCP Support, then double-check that the browser dependencies are installed.
 
 ```bash
-# Install WhisperCrawler with MCP server dependencies
-pip install "whispercrawler[ai]"
+# Install whispercrawler with MCP server + fetchers dependencies
+pip install "whispercrawler[fetchers,mcp]"
 
 # Install browser dependencies
 whispercrawler install
@@ -59,13 +59,13 @@ docker pull ghcr.io/whispercrawl/whispercrawler:latest
 
 ## Setting up the MCP Server
 
-Here we will explain how to add WhisperCrawler MCP Server to [Claude Desktop](https://claude.ai/download) and [Claude Code](https://www.anthropic.com/claude-code), but the same logic applies to any other chatbot that supports MCP:
+Here we will explain how to add whispercrawler MCP Server to [Claude Desktop](https://claude.ai/download) and [Claude Code](https://www.anthropic.com/claude-code), but the same logic applies to any other chatbot that supports MCP:
 
 ### Claude Desktop
 
 1. Open Claude Desktop
 2. Click the hamburger menu (☰) at the top left → Settings → Developer → Edit Config
-3. Add the WhisperCrawler MCP server configuration:
+3. Add the whispercrawler MCP server configuration:
 ```json
 "WhisperCrawlerServer": {
   "command": "whispercrawler",
@@ -133,7 +133,7 @@ Here it's much simpler to do. If you have [Claude Code](https://www.anthropic.co
 ```bash
 claude mcp add WhisperCrawlerServer "/Users/<MyUsername>/.venv/bin/whispercrawler" mcp
 ```
-Same as above, to get WhisperCrawler's executable path, open the terminal and execute the following command:
+Same as above, to get whispercrawler's executable path, open the terminal and execute the following command:
 
 1. **MacOS**: `which whispercrawler`
 2. **Windows**: `where whispercrawler`
@@ -291,4 +291,4 @@ Here is some technical advice for you.
 
 ---
 
-*Built with ❤️ by the WhisperCrawler team. Happy scraping!*
+*Built with ❤️ by the whispercrawler team. Happy scraping!*
