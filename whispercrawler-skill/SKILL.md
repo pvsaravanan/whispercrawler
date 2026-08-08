@@ -22,7 +22,7 @@ Blazing fast crawls with real-time stats and streaming. Built by Web Scrapers fo
 
 Create a virtual Python environment through any way available, like `venv`, then inside the environment do:
 
-`pip install "whispercrawler[all]>=0.4.2"`
+`pip install "whispercrawler[fetchers,mcp]>=0.4.2"`
 
 Then do this to download all the browsers' dependencies:
 

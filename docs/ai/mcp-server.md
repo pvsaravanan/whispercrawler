@@ -41,8 +41,8 @@ If you don't know how to write/use CSS selectors, don't worry. You can tell the 
 Install whispercrawler with MCP Support, then double-check that the browser dependencies are installed.
 
 ```bash
-# Install whispercrawler with MCP server dependencies
-pip install "whispercrawler[ai]"
+# Install whispercrawler with MCP server + fetchers dependencies
+pip install "whispercrawler[fetchers,mcp]"
 
 # Install browser dependencies
 whispercrawler install

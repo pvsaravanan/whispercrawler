@@ -9,7 +9,7 @@ All examples collect **all 100 quotes across 10 pages**.
 Make sure whispercrawler is installed:
 
 ```bash
-pip install "whispercrawler[all]>=0.4.2"
+pip install "whispercrawler[fetchers,mcp]>=0.4.2"
 whispercrawler install --force
 ```
 
