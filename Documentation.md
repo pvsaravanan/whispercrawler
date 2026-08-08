@@ -97,7 +97,7 @@ graph TD
 **The Spiders (The Operators)**
 
 - Abstract class `Spider` orchestrates requests.
-- Yielding a `Request` objects queues the exact URL back into the `Scheduler`, which enforces FIFO and deduplication using SHA-1 payload fingerprinting.
+- Yielding a `Request` object queues the exact URL back into the `Scheduler`, which processes requests by priority (FIFO among equal priority) and deduplicates using SHA-1 payload fingerprinting.
 
 ### Part III: Setup & Contributing
 
@@ -118,7 +118,7 @@ graph TD
 
 ### Checkpointing System
 
-An advanced `Pickle`-based checkpoint mechanism exists under `whispercrawler/spiders/checkpoint.py`. It persists the target queue, `Scheduler` states, and deduplication hashes to disk, ensuring a large crawl spanning thousands of pages can resume immediately after interruption.
+An advanced JSON-based (via `orjson`) checkpoint mechanism exists under `whispercrawler/spiders/checkpoint.py`. It persists the target queue, `Scheduler` states, and deduplication hashes to disk, ensuring a large crawl spanning thousands of pages can resume immediately after interruption.
 
 ### ProxyWheel
 
@@ -152,8 +152,8 @@ Located in `whispercrawler/proxy.py`, the `ProxyWheel` handles thread-safe rotat
 - **MCP Server**: Programmatic endpoints for AI research agents.
 
 ### 4. `spiders/scheduler.py`
-- Inherits from `asyncio.PriorityQueue`.
-- Combines depth limits, deduplication hashing (combining Method, Headers, and Body), and ensures we don't fetch identical resource URIs unless explicitly bypasses.
+- Wraps an `asyncio.PriorityQueue`; higher-priority requests are processed first, FIFO among equal priority.
+- Combines deduplication hashing (optionally including Headers and Body/kwargs) and ensures we don't re-fetch identical resource URIs unless explicitly bypassed with `dont_filter=True`.
 
 ---
 
