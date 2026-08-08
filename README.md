@@ -1,20 +1,20 @@
 <div align="center">
 
-```text
-██╗    ██╗██╗  ██╗██╗███████╗██████╗ ███████╗██████╗ 
-██║    ██║██║  ██║██║██╔════╝██╔══██╗██╔════╝██╔══██╗
-██║ █╗ ██║███████║██║███████╗██████╔╝█████╗  ██████╔╝
-██║███╗██║██╔══██║██║╚════██║██╔═══╝ ██╔══╝  ██╔══██╗
-╚███╔███╔╝██║  ██║██║███████║██║     ███████╗██║  ██║
- ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝╚══════╝╚═╝     ╚══════╝╚═╝  ╚═╝
-
+<pre align="center">
+██╗    ██╗██╗  ██╗██╗███████╗██████╗ ███████╗██████╗      
+██║    ██║██║  ██║██║██╔════╝██╔══██╗██╔════╝██╔══██╗     
+██║ █╗ ██║███████║██║███████╗██████╔╝█████╗  ██████╔╝     
+██║███╗██║██╔══██║██║╚════██║██╔═══╝ ██╔══╝  ██╔══██╗     
+╚███╔███╔╝██║  ██║██║███████║██║     ███████╗██║  ██║     
+ ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝╚══════╝╚═╝     ╚══════╝╚═╝  ╚═╝     
+                                                          
  ██████╗██████╗  █████╗ ██╗    ██╗██╗     ███████╗██████╗ 
 ██╔════╝██╔══██╗██╔══██╗██║    ██║██║     ██╔════╝██╔══██╗
 ██║     ██████╔╝███████║██║ █╗ ██║██║     █████╗  ██████╔╝
 ██║     ██╔══██╗██╔══██║██║███╗██║██║     ██╔══╝  ██╔══██╗
 ╚██████╗██║  ██║██║  ██║╚███╔███╔╝███████╗███████╗██║  ██║
  ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚══╝╚══╝ ╚══════╝╚══════╝╚═╝  ╚═╝
-```
+</pre>
 
 <p align="center">
   <strong>The adaptive web scraping framework — fast, stealthy, and self-healing.</strong>
@@ -71,11 +71,11 @@ whispercrawler install
 
 whispercrawler allows you to select the right tool for every site complexity:
 
-| Strategy | Engine | Best For | Speed |
-| :--- | :--- | :--- | :--- |
-| **Crawler** | `curl_cffi` (HTTP/3) | Static HTML, JSON APIs, high-volume scraping | **Ultra-Fast** |
-| **GhostCrawler** | `Playwright` | SPAs, React/Vue sites, login flows | **Fast** |
-| **ShadowCrawler** | `Camoufox` (Hardened) | Cloudflare Turnstile, PerimeterX, Datadome | **Efficient** |
+| Strategy          | Engine                | Best For                                     | Speed          |
+| :---------------- | :-------------------- | :------------------------------------------- | :------------- |
+| **Crawler**       | `curl_cffi` (HTTP/3)  | Static HTML, JSON APIs, high-volume scraping | **Ultra-Fast** |
+| **GhostCrawler**  | `Playwright`          | SPAs, React/Vue sites, login flows           | **Fast**       |
+| **ShadowCrawler** | `Camoufox` (Hardened) | Cloudflare Turnstile, PerimeterX, Datadome   | **Efficient**  |
 
 ---
 
@@ -119,35 +119,45 @@ title = page.css("h1.main-title", adaptive=True)
 ## Advanced Capabilities
 
 ### Automatic Pagination
+
 Detect and follow navigation links automatically without inspecting the DOM.
+
 ```python
 next_url = page.next_page  # Intelligent "Next" detection
 all_pages = page.all_pages # Get all numerical page links
 ```
 
 ### Structured Data (Schema)
+
 Instant JSON-LD and Microdata extraction.
+
 ```python
 # Get all Product schema data as a clean dictionary
 product_info = page.find_schema("Product")
 ```
 
 ### Metadata Enrichment
+
 Learn everything about a page's SEO and Social profile in one call.
+
 ```python
 meta = page.metadata  # Get SEO, OpenGraph, and Twitter tags
 print(page.analyze(summary=True)) # Human-readable summary
 ```
 
 ### Regex Synthesis
+
 Synthesize regular expressions from groups of elements for pattern matching.
+
 ```python
 # Generate a regex that matches all product IDs in your selection
 id_regex = page.css(".product-id").generate_regex()
 ```
 
 ### Automatic Captcha Solving
+
 Internal bridge for 2Captcha and Anti-Captcha (ReCaptcha V2).
+
 ```python
 page = ShadowCrawler.fetch(url, captcha_api_key="...", captcha_service="2captcha")
 ```
@@ -157,6 +167,7 @@ page = ShadowCrawler.fetch(url, captcha_api_key="...", captcha_service="2captcha
 ## Scaling to Production
 
 ### Integrated Spider Framework
+
 Build robust, persistent crawlers with built-in concurrency and error handling.
 
 ```python
@@ -170,7 +181,7 @@ class MySpider(Spider):
     async def parse(self, response: Response):
         for item in response.css(".item"):
             yield {"price": item.css(".price::text").get()}
-        
+
         if response.next_page:
             yield Request(response.next_page)
 
@@ -178,6 +189,7 @@ MySpider().start()
 ```
 
 ### Scrapy Native Support
+
 Already using Scrapy? Inject whispercrawler's adaptive engine into your standard spiders.
 
 ```python
@@ -195,14 +207,18 @@ class LegacySpider(scrapy.Spider):
 ## Developer Experience
 
 ### Interactive Research Shell
+
 Test selectors and uncurl commands in a pre-configured IPython environment.
+
 ```bash
 whispercrawler shell
 # In shell: uncurl('curl https://site.com -H "..."')
 ```
 
 ### Model Context Protocol (MCP)
+
 Plug whispercrawler into your AI Agent (Claude, ChatGPT) for real-time web research.
+
 ```bash
 # Configuration in MCP settings
 "whispercrawler": { "command": "whispercrawler-mcp" }
